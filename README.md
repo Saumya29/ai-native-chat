@@ -34,7 +34,7 @@ cp .env.example .env.local  # add your OPENAI_API_KEY
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Demo password is `mesh2024`.
+Open [http://localhost:3000](http://localhost:3000). Demo password is `mesh2026`.
 
 ## Project structure
 

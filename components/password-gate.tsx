@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 
-const DEMO_PASSWORD = 'mesh2024'
+const DEMO_PASSWORD = 'mesh2026'
 const SESSION_KEY   = 'mesh_auth'
 
 interface PasswordGateProps {
@@ -98,7 +98,7 @@ export function PasswordGate({ children }: PasswordGateProps) {
 
             {error && (
               <p className="text-[12px] text-destructive px-0.5">
-                Wrong password. Try <span className="font-medium">mesh2024</span>
+                Wrong password. Try <span className="font-medium">mesh2026</span>
               </p>
             )}
 
