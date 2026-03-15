@@ -1,35 +1,56 @@
-# ai-native-chat
+# Mesh
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [v0](https://v0.app).
+AI-native group chat where the AI is a teammate, not a sidebar widget.
 
-## Built with v0
+## What is this
 
-This repository is linked to a [v0](https://v0.app) project. You can continue developing by visiting the link below -- start new chats to make changes, and v0 will push commits directly to this repo. Every merge to `main` will automatically deploy.
+Mesh is a prototype for a new kind of group messaging. Instead of bolting AI onto chat as a `/slash command` or a separate panel, the AI sits inside the conversation as a full participant. It listens, contributes when useful, stays silent when it has nothing to add, and quietly extracts structure (decisions, tasks, budget, links) from the natural flow of conversation.
 
-[Continue working on v0 →](https://v0.app/chat/projects/prj_yoWhKXb9W5utnhGnVmwbPFWgyiaO)
+Built as a co-founder audition demo.
 
-## Getting Started
+## Key features
 
-First, run the development server:
+- **"When to speak" logic**: The AI decides whether to respond or stay silent. Not every message gets a reply. A lightweight classifier determines relevance before generating a response.
+- **Streaming responses**: AI messages appear token-by-token via SSE. Fast decision call (gpt-4o-mini) followed by streamed response (gpt-4o).
+- **Live context panel**: Decisions, tasks, budget items, and links are extracted automatically and shown in a resizable sidebar. Tasks have checkboxes. Items link back to the source message.
+- **Guided demo with reveal**: A "Watch Demo" auto-plays a realistic group conversation (Bali trip planning). The twist: one of the "human" participants was the AI the whole time.
+- **Room settings**: Per-room AI personality (professional/casual/minimal), activity level slider, and capability toggles.
+- **Dark mode**: Toggle between light and dark themes. Indigo primary preserved across both.
+- **Mobile-responsive**: Context panel becomes a bottom drawer on small screens. Header adapts to available space.
+
+## Tech stack
+
+- Next.js 16 + TypeScript
+- OpenAI GPT-4o / GPT-4o-mini via Vercel AI SDK
+- Tailwind CSS 4 + shadcn/ui
+- Geist Mono font
+- Deployed on Vercel
+
+## Running locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
+cp .env.example .env.local  # add your OPENAI_API_KEY
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). Demo password is `mesh2024`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project structure
 
-## Learn More
-
-To learn more, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-- [v0 Documentation](https://v0.app/docs) - learn about v0 and how to use it.
-
-<a href="https://v0.app/chat/api/kiro/clone/Saumya29/ai-native-chat" alt="Open in Kiro"><img src="https://pdgvvgmkdvyeydso.public.blob.vercel-storage.com/open%20in%20kiro.svg?sanitize=true" /></a>
+```
+app/
+  api/chat/route.ts     # streaming API with shouldRespond logic
+  layout.tsx            # root layout, theme provider, Geist Mono
+  globals.css           # light + dark theme tokens
+components/
+  chat-app.tsx          # main orchestrator
+  message-bubble.tsx    # individual messages with markdown rendering
+  context-sidebar.tsx   # resizable context panel with drag handle
+  demo-player.tsx       # auto-play demo controls
+  room-settings.tsx     # AI configuration sheet
+  password-gate.tsx     # demo auth gate
+lib/
+  types.ts              # shared interfaces + constants
+  demo-script.ts        # scripted demo conversation data
+```
