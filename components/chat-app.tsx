@@ -335,7 +335,7 @@ export function ChatApp() {
         {/* Left: brand + room */}
         <div className="flex items-center gap-2 md:gap-3 min-w-0">
           <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
-            <div className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-primary flex items-center justify-center shadow-sm">
+            <div className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-indigo-600 flex items-center justify-center shadow-sm">
               <svg width="11" height="11" viewBox="0 0 20 20" fill="none" aria-hidden="true" className="md:w-[13px] md:h-[13px]">
                 <circle cx="6"  cy="6"  r="3.5" fill="white" />
                 <circle cx="14" cy="6"  r="3.5" fill="white" fillOpacity="0.55" />

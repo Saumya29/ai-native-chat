@@ -51,7 +51,7 @@ export function PasswordGate({ children }: PasswordGateProps) {
         {/* Logo + name */}
         <div className="mb-8">
           <div className="flex items-center gap-2.5 mb-6">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-sm">
+            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-sm">
               <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                 <circle cx="6"  cy="6"  r="3.5" fill="white" />
                 <circle cx="14" cy="6"  r="3.5" fill="white" fillOpacity="0.55" />
