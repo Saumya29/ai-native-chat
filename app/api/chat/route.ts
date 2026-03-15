@@ -1,20 +1,20 @@
-import { generateText, Output } from 'ai'
+import { generateObject } from 'ai'
 import { openai } from '@ai-sdk/openai'
 import { z } from 'zod'
 
 export const runtime = 'nodejs'
 
-const contextItemSchema = z.object({
-  type: z.enum(['decision', 'task', 'link', 'budget']),
-  text: z.string(),
-})
-
 const responseSchema = z.object({
   content: z.string().describe("Mesh's reply message to the group"),
   contextItems: z
-    .array(contextItemSchema)
+    .array(
+      z.object({
+        type: z.enum(['decision', 'task', 'link', 'budget']),
+        text: z.string(),
+      })
+    )
     .nullable()
-    .describe('Any decisions, tasks, links, or budget figures that should be tracked from this exchange'),
+    .describe('Decisions, tasks, links, or budget figures to track from this exchange'),
 })
 
 const SYSTEM_PROMPT = `You are Mesh, an AI collaborator in a group chat. Your job is to be genuinely helpful in conversations — contributing insights, asking clarifying questions, summarizing progress, and keeping the group aligned.
@@ -42,16 +42,16 @@ export async function POST(req: Request) {
   try {
     const { messages } = await req.json()
 
-    const { output } = await generateText({
+    const { object } = await generateObject({
       model: openai('gpt-4o'),
+      schema: responseSchema,
       system: SYSTEM_PROMPT,
       messages,
-      output: Output.object({ schema: responseSchema }),
     })
 
     return Response.json({
-      content: output.content,
-      contextItems: output.contextItems ?? [],
+      content: object.content,
+      contextItems: object.contextItems ?? [],
     })
   } catch (error) {
     console.error('[mesh] API error:', error)
