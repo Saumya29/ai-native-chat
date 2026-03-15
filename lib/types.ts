@@ -18,6 +18,32 @@ export interface ContextItem {
   type: 'decision' | 'task' | 'link' | 'budget'
   text: string
   addedAt: Date
+  status?: 'open' | 'done'   // for tasks
+  messageId?: string          // links back to the message that generated it
+}
+
+export interface RoomSettings {
+  aiName: string
+  personality: 'professional' | 'casual' | 'minimal'
+  activityLevel: number // 0–100, 0 = "only when asked", 100 = "proactive"
+  capabilities: {
+    extractDecisions: boolean
+    summarize: boolean
+    answerQuestions: boolean
+    suggestActions: boolean
+  }
+}
+
+export const DEFAULT_ROOM_SETTINGS: RoomSettings = {
+  aiName: 'Mesh',
+  personality: 'professional',
+  activityLevel: 50,
+  capabilities: {
+    extractDecisions: true,
+    summarize: true,
+    answerQuestions: true,
+    suggestActions: false,
+  },
 }
 
 export const DEMO_USERS: ChatUser[] = [

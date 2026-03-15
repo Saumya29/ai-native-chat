@@ -1,11 +1,19 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Send, PanelRight, PanelRightClose, X, ArrowUp } from 'lucide-react'
-import { DEMO_USERS, AI_USER, type ChatMessage, type ChatUser, type ContextItem } from '@/lib/types'
+import { PanelRight, PanelRightClose, X, ArrowUp, Zap, Moon, Sun } from 'lucide-react'
+import { useTheme } from 'next-themes'
+import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer'
+import {
+  DEMO_USERS, AI_USER,
+  DEFAULT_ROOM_SETTINGS,
+  type ChatMessage, type ChatUser, type ContextItem, type RoomSettings,
+} from '@/lib/types'
 import { UserSwitcher } from './user-switcher'
 import { MessageBubble } from './message-bubble'
 import { ContextSidebar } from './context-sidebar'
+import { DemoPlayer } from './demo-player'
+import { RoomSettingsPanel } from './room-settings'
 
 let msgId = 0
 const nextId = () => `msg-${++msgId}`
@@ -17,8 +25,7 @@ const DEMO_PROMPTS = [
   "Priya will own the design system end of next week",
 ]
 
-// Pre-seeded conversation — showcases an AI-native messaging startup team
-// planning their MVP (scenario deliberately mirrors Herman Narula's post)
+// Pre-seeded conversation
 const t = (minutesAgo: number) => new Date(Date.now() - minutesAgo * 60_000)
 
 const SEED_MESSAGES: ChatMessage[] = [
@@ -34,12 +41,12 @@ const SEED_MESSAGES: ChatMessage[] = [
   },
   {
     id: nextId(), role: 'user', userId: 'priya',
-    content: "Agreed. From a design perspective, the AI should feel like a silent note-taker — present but not intrusive. The side panel is the output, not the chat thread itself.",
+    content: "Agreed. From a design perspective, the AI should feel like a silent note-taker. Present but not intrusive. The side panel is the output, not the chat thread itself.",
     timestamp: t(38),
   },
   {
     id: nextId(), role: 'ai',
-    content: "Got it. Recording that as a core design principle:\n\n**Decision:** The AI participant operates in a \"listen-first\" mode — it surfaces structured context (decisions, tasks, links) in the side panel and only responds in the chat when explicitly addressed.\n\nThis is now tracked in the Context Panel on the right.",
+    content: "Got it. Recording that as a core design principle:\n\n**Decision:** The AI participant operates in a \"listen-first\" mode. It surfaces structured context (decisions, tasks, links) in the side panel and only responds in the chat when explicitly addressed.\n\nThis is now tracked in the Context Panel on the right.",
     timestamp: t(37),
   },
   {
@@ -49,12 +56,12 @@ const SEED_MESSAGES: ChatMessage[] = [
   },
   {
     id: nextId(), role: 'user', userId: 'marcus',
-    content: "Next.js + TypeScript for the frontend and API layer — monorepo keeps it simple. For real-time we'll start with SSE, upgrade to WebSockets when we need bidirectional. OpenAI GPT-4o for the AI core, with the option to swap models later.\n\nBudget estimate for infra in the first 3 months: around $4,000.",
+    content: "Next.js + TypeScript for the frontend and API layer. Monorepo keeps it simple. For real-time we'll start with SSE, upgrade to WebSockets when we need bidirectional. OpenAI GPT-4o for the AI core, with the option to swap models later.\n\nBudget estimate for infra in the first 3 months: around $4,000.",
     timestamp: t(33),
   },
   {
     id: nextId(), role: 'user', userId: 'priya',
-    content: "Works for me. I'll have the design system — tokens, component library, the base Figma file — ready by Friday. I'm scoping the messaging UI to feel like Linear meets iMessage.",
+    content: "Works for me. I'll have the design system (tokens, component library, the base Figma file) ready by Friday. I'm scoping the messaging UI to feel like Linear meets iMessage.",
     timestamp: t(31),
   },
   {
@@ -69,22 +76,22 @@ const SEED_MESSAGES: ChatMessage[] = [
   },
   {
     id: nextId(), role: 'user', userId: 'jordan',
-    content: "Great. On the product side — let's keep the MVP scope tight. Group chat with AI participant, context panel, and a shareable demo link. No auth, no persistence beyond the session for now. Ship fast, get feedback.\n\nHere's the Notion doc with the full spec: https://notion.so/mesh-mvp-spec",
+    content: "Great. On the product side, let's keep the MVP scope tight. Group chat with AI participant, context panel, and a shareable demo link. No auth, no persistence beyond the session for now. Ship fast, get feedback.\n\nHere's the Notion doc with the full spec: https://notion.so/mesh-mvp-spec",
     timestamp: t(25),
   },
   {
     id: nextId(), role: 'ai',
-    content: "Added that to the panel.\n\n**Task:** Marcus to set up CI/CD pipeline and staging environment by end of week.\n\n**Decision:** MVP scope — group chat with AI participant + context panel + shareable demo link. No auth or persistence in v1.\n\n**Link:** https://notion.so/mesh-mvp-spec\n\nYou're in good shape. Three decisions locked, three tasks assigned, infra budget set. Ready to build.",
+    content: "Added that to the panel.\n\n**Task:** Marcus to set up CI/CD pipeline and staging environment by end of week.\n\n**Decision:** MVP scope is group chat with AI participant + context panel + shareable demo link. No auth or persistence in v1.\n\n**Link:** https://notion.so/mesh-mvp-spec\n\nYou're in good shape. Three decisions locked, three tasks assigned, infra budget set. Ready to build.",
     timestamp: t(24),
   },
 ]
 
 const SEED_CONTEXT: ContextItem[] = [
-  { type: 'decision', text: 'AI participant operates in listen-first mode — surfaces context in the side panel, only replies when addressed.',  addedAt: t(37) },
+  { type: 'decision', text: 'AI participant operates in listen-first mode. Surfaces context in the side panel, only replies when addressed.',  addedAt: t(37) },
   { type: 'decision', text: 'Tech stack: Next.js + TypeScript (monorepo), SSE for real-time, GPT-4o as the AI model.', addedAt: t(30) },
   { type: 'decision', text: 'MVP scope: group chat + AI participant + context panel + shareable demo link. No auth or persistence in v1.', addedAt: t(24) },
-  { type: 'task',     text: 'Priya — deliver design system, component library, and Figma file by Friday.',             addedAt: t(30) },
-  { type: 'task',     text: 'Marcus — set up CI/CD pipeline and staging environment by end of week.',                 addedAt: t(24) },
+  { type: 'task',     text: 'Priya: deliver design system, component library, and Figma file by Friday.', status: 'open', addedAt: t(30) },
+  { type: 'task',     text: 'Marcus: set up CI/CD pipeline and staging environment by end of week.', status: 'open', addedAt: t(24) },
   { type: 'budget',   text: '$4,000 estimated for infrastructure over the first 3 months.',                           addedAt: t(30) },
   { type: 'link',     text: 'https://notion.so/mesh-mvp-spec',                                                        addedAt: t(24) },
 ]
@@ -97,6 +104,14 @@ export function ChatApp() {
   const [contextItems,    setContextItems]    = useState<ContextItem[]>(SEED_CONTEXT)
   const [sidebarOpen,     setSidebarOpen]     = useState(true)
   const [bannerVisible,   setBannerVisible]   = useState(true)
+  const [roomSettings,    setRoomSettings]    = useState<RoomSettings>(DEFAULT_ROOM_SETTINGS)
+  const [demoActive,      setDemoActive]      = useState(false)
+  const [listeningFlash,  setListeningFlash]  = useState(false)
+  const [highlightedMsg,  setHighlightedMsg]  = useState<string | null>(null)
+  const [roomName,        setRoomName]        = useState('Product Sprint')
+  const [showReveal,      setShowReveal]      = useState(false)
+  const [mobileDrawer,    setMobileDrawer]    = useState(false)
+  const { theme, setTheme } = useTheme()
 
   const bottomRef  = useRef<HTMLDivElement>(null)
   const inputRef   = useRef<HTMLTextAreaElement>(null)
@@ -106,6 +121,13 @@ export function ChatApp() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, loading])
 
+  // "Mesh is listening" flash
+  const showListening = useCallback(() => {
+    setListeningFlash(true)
+    const timer = setTimeout(() => setListeningFlash(false), 2000)
+    return () => clearTimeout(timer)
+  }, [])
+
   const addContextItems = useCallback((items: ContextItem[]) => {
     if (!items.length) return
     setContextItems(prev => {
@@ -113,6 +135,23 @@ export function ChatApp() {
       const fresh = items.filter(i => !seen.has(i.text.toLowerCase()))
       return fresh.length ? [...prev, ...fresh] : prev
     })
+  }, [])
+
+  const toggleTask = useCallback((index: number) => {
+    setContextItems(prev =>
+      prev.map((item, i) =>
+        i === index && item.type === 'task'
+          ? { ...item, status: item.status === 'done' ? 'open' as const : 'done' as const }
+          : item
+      )
+    )
+  }, [])
+
+  const scrollToMessage = useCallback((messageId: string) => {
+    setHighlightedMsg(messageId)
+    const el = messagesRef.current?.querySelector(`[data-message-id="${messageId}"]`)
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    setTimeout(() => setHighlightedMsg(null), 2500)
   }, [])
 
   async function sendMessage(overrideText?: string) {
@@ -146,30 +185,83 @@ export function ChatApp() {
       const res = await fetch('/api/chat', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ messages: history }),
+        body:    JSON.stringify({ messages: history, settings: roomSettings }),
       })
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const data = await res.json()
 
-      setMessages(prev => [
-        ...prev,
-        {
-          id:        nextId(),
-          role:      'ai',
-          content:   data.content,
-          timestamp: new Date(),
-        },
-      ])
+      const contentType = res.headers.get('Content-Type') ?? ''
+      const aiMsgId = nextId()
 
-      if (data.contextItems?.length) {
-        addContextItems(
-          data.contextItems.map((i: Omit<ContextItem, 'addedAt'>) => ({
-            ...i,
-            addedAt: new Date(),
-          }))
-        )
-        if (!sidebarOpen) setSidebarOpen(true)
+      if (contentType.includes('text/event-stream')) {
+        // Streaming response: AI is responding
+        const reader = res.body!.getReader()
+        const decoder = new TextDecoder()
+        let buffer = ''
+        let streamedContent = ''
+        let metaReceived = false
+
+        // Add placeholder AI message immediately
+        setMessages(prev => [
+          ...prev,
+          { id: aiMsgId, role: 'ai' as const, content: '', timestamp: new Date() },
+        ])
+        setLoading(false)
+
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+
+          buffer += decoder.decode(value, { stream: true })
+          const lines = buffer.split('\n')
+          buffer = lines.pop() ?? ''
+
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue
+            const payload = JSON.parse(line.slice(6))
+
+            if (payload.type === 'meta') {
+              metaReceived = true
+              if (payload.contextItems?.length) {
+                addContextItems(
+                  payload.contextItems.map((i: Omit<ContextItem, 'addedAt'>) => ({
+                    ...i,
+                    addedAt: new Date(),
+                    messageId: aiMsgId,
+                    ...(i.type === 'task' ? { status: 'open' as const } : {}),
+                  }))
+                )
+                if (!sidebarOpen) setSidebarOpen(true)
+              }
+            } else if (payload.type === 'text') {
+              streamedContent += payload.content
+              setMessages(prev =>
+                prev.map(m =>
+                  m.id === aiMsgId ? { ...m, content: streamedContent } : m
+                )
+              )
+            }
+          }
+        }
+      } else {
+        // JSON response: AI stayed silent
+        const data = await res.json()
+
+        if (data.shouldRespond === false) {
+          showListening()
+        }
+
+        if (data.contextItems?.length) {
+          addContextItems(
+            data.contextItems.map((i: Omit<ContextItem, 'addedAt'>) => ({
+              ...i,
+              addedAt: new Date(),
+              messageId: userMsg.id,
+              ...(i.type === 'task' ? { status: 'open' as const } : {}),
+            }))
+          )
+          if (!sidebarOpen) setSidebarOpen(true)
+        }
       }
     } catch {
       setMessages(prev => [
@@ -199,71 +291,163 @@ export function ChatApp() {
     el.style.height = `${Math.min(el.scrollHeight, 140)}px`
   }
 
+  // Demo player callbacks
+  const handleDemoStart = useCallback(() => {
+    setDemoActive(true)
+    setMessages([])
+    setContextItems([])
+    setRoomName('Trip Planning')
+    setBannerVisible(false)
+  }, [])
+
+  const handleDemoEnd = useCallback(() => {
+    setDemoActive(false)
+  }, [])
+
+  const handleDemoMessage = useCallback((msg: ChatMessage) => {
+    setMessages(prev => [...prev, msg])
+  }, [])
+
+  const handleDemoContextItems = useCallback((items: ContextItem[]) => {
+    addContextItems(
+      items.map(i => ({
+        ...i,
+        ...(i.type === 'task' ? { status: 'open' as const } : {}),
+      }))
+    )
+    if (!sidebarOpen) setSidebarOpen(true)
+  }, [addContextItems, sidebarOpen])
+
+  const handleDemoSilent = useCallback(() => {
+    showListening()
+  }, [showListening])
+
+  const handleDemoReveal = useCallback(() => {
+    setShowReveal(true)
+  }, [])
+
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
 
       {/* ── Header ── */}
-      <header className="flex items-center justify-between px-5 h-14 border-b border-border bg-card shrink-0">
+      <header className="flex items-center justify-between px-3 md:px-5 h-12 md:h-14 border-b border-border bg-card shrink-0">
 
         {/* Left: brand + room */}
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center shadow-sm">
-              <svg width="13" height="13" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <div className="flex items-center gap-2 md:gap-3 min-w-0">
+          <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
+            <div className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-primary flex items-center justify-center shadow-sm">
+              <svg width="11" height="11" viewBox="0 0 20 20" fill="none" aria-hidden="true" className="md:w-[13px] md:h-[13px]">
                 <circle cx="6"  cy="6"  r="3.5" fill="white" />
                 <circle cx="14" cy="6"  r="3.5" fill="white" fillOpacity="0.55" />
                 <circle cx="6"  cy="14" r="3.5" fill="white" fillOpacity="0.55" />
                 <circle cx="14" cy="14" r="3.5" fill="white" fillOpacity="0.25" />
               </svg>
             </div>
-            <span className="text-[14px] font-semibold tracking-tight text-foreground">mesh</span>
+            <span className="text-[13px] md:text-[14px] font-semibold tracking-tight text-foreground">mesh</span>
           </div>
 
           <span className="text-border select-none">/</span>
 
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-[13px] font-medium text-foreground truncate">Product Sprint</span>
-            <span className="shrink-0 text-[10px] font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full leading-none">
+          <div className="flex items-center gap-1.5 md:gap-2 min-w-0">
+            <span className="text-[12px] md:text-[13px] font-medium text-foreground truncate">{roomName}</span>
+            <span className="shrink-0 text-[9px] md:text-[10px] font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full leading-none">
               DEMO
             </span>
           </div>
         </div>
 
-        {/* Right: avatars + switcher + panel toggle */}
-        <div className="flex items-center gap-3 shrink-0">
+        {/* Right: controls */}
+        <div className="flex items-center gap-1.5 md:gap-3 shrink-0">
 
-          {/* Stacked avatars */}
-          <div className="flex items-center -space-x-1.5">
-            {DEMO_USERS.map(u => (
+          {/* Stacked avatars + listening indicator (hidden on small mobile) */}
+          <div className="hidden sm:flex items-center gap-2">
+            <div className="flex items-center -space-x-1.5">
+              {DEMO_USERS.map(u => (
+                <div
+                  key={u.id}
+                  title={`${u.name}, ${u.role}`}
+                  className={`w-7 h-7 rounded-full ${u.color} flex items-center justify-center
+                    border-[2px] border-card shadow-sm ring-0`}
+                >
+                  <span className="text-[9px] font-bold text-white leading-none">{u.initials}</span>
+                </div>
+              ))}
               <div
-                key={u.id}
-                title={`${u.name} — ${u.role}`}
-                className={`w-7 h-7 rounded-full ${u.color} flex items-center justify-center
-                  border-[2px] border-card shadow-sm ring-0`}
+                title="Mesh (AI)"
+                className={`w-7 h-7 rounded-full bg-primary flex items-center justify-center
+                  border-[2px] border-card shadow-sm transition-all duration-300
+                  ${listeningFlash ? 'ring-2 ring-primary/40 ring-offset-1 scale-110' : ''}`}
               >
-                <span className="text-[9px] font-bold text-white leading-none">{u.initials}</span>
+                <span className="text-[9px] font-bold text-white leading-none">AI</span>
               </div>
-            ))}
-            <div
-              title="Mesh (AI)"
-              className="w-7 h-7 rounded-full bg-primary flex items-center justify-center
-                border-[2px] border-card shadow-sm"
-            >
-              <span className="text-[9px] font-bold text-white leading-none">AI</span>
             </div>
+
+            {/* "Mesh heard that" text */}
+            {listeningFlash && (
+              <span className="text-[10px] text-primary font-medium animate-pulse whitespace-nowrap">
+                Mesh heard that
+              </span>
+            )}
+          </div>
+
+          {/* Demo player (compact on mobile) */}
+          <div className="hidden md:block">
+            <DemoPlayer
+              onMessage={handleDemoMessage}
+              onContextItems={handleDemoContextItems}
+              onSilent={handleDemoSilent}
+              onReveal={handleDemoReveal}
+              onStart={handleDemoStart}
+              onEnd={handleDemoEnd}
+              isActive={demoActive}
+              nextId={nextId}
+            />
           </div>
 
           <UserSwitcher users={DEMO_USERS} activeUser={activeUser} onChange={setActiveUser} />
 
+          <div className="hidden md:block">
+            <RoomSettingsPanel settings={roomSettings} onChange={setRoomSettings} />
+          </div>
+
+          {/* Theme toggle */}
+          <button
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            className="flex items-center justify-center w-8 h-8 rounded-lg
+              text-muted-foreground hover:text-foreground hover:bg-secondary border border-transparent
+              hover:border-border transition-all"
+            aria-label="Toggle theme"
+          >
+            {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
+          </button>
+
+          {/* Desktop sidebar toggle */}
           <button
             onClick={() => setSidebarOpen(o => !o)}
-            className="relative flex items-center justify-center w-8 h-8 rounded-lg
+            className="relative hidden md:flex items-center justify-center w-8 h-8 rounded-lg
               text-muted-foreground hover:text-foreground hover:bg-secondary border border-transparent
               hover:border-border transition-all"
             aria-label={sidebarOpen ? 'Hide context panel' : 'Show context panel'}
           >
             {sidebarOpen ? <PanelRightClose size={15} /> : <PanelRight size={15} />}
             {!sidebarOpen && contextItems.length > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary text-primary-foreground
+                text-[9px] font-bold flex items-center justify-center shadow">
+                {contextItems.length}
+              </span>
+            )}
+          </button>
+
+          {/* Mobile context drawer toggle */}
+          <button
+            onClick={() => setMobileDrawer(true)}
+            className="relative flex md:hidden items-center justify-center w-8 h-8 rounded-lg
+              text-muted-foreground hover:text-foreground hover:bg-secondary border border-transparent
+              hover:border-border transition-all"
+            aria-label="Show context panel"
+          >
+            <Zap size={14} />
+            {contextItems.length > 0 && (
               <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary text-primary-foreground
                 text-[9px] font-bold flex items-center justify-center shadow">
                 {contextItems.length}
@@ -289,7 +473,7 @@ export function ChatApp() {
                       How to demo Mesh
                     </p>
                     <p className="text-[11.5px] text-muted-foreground mb-3 leading-relaxed">
-                      The team has been planning their MVP. Continue the conversation below — or pick a prompt to see Mesh in action.
+                      The team has been planning their MVP. Continue the conversation below, or pick a prompt to see Mesh in action.
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {DEMO_PROMPTS.map(prompt => (
@@ -337,6 +521,7 @@ export function ChatApp() {
                   user={user}
                   isOwn={msg.role === 'user' && msg.userId === activeUser.id}
                   grouped={grouped}
+                  highlighted={highlightedMsg === msg.id}
                 />
               )
             })}
@@ -347,12 +532,41 @@ export function ChatApp() {
                 <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0 shadow-sm">
                   <span className="text-[9px] font-bold text-white">AI</span>
                 </div>
-                <div className="bg-white border border-primary/15 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
+                <div className="bg-card border border-primary/15 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
                   <div className="flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-primary/50 animate-bounce [animation-delay:0ms]" />
                     <span className="w-1.5 h-1.5 rounded-full bg-primary/50 animate-bounce [animation-delay:150ms]" />
                     <span className="w-1.5 h-1.5 rounded-full bg-primary/50 animate-bounce [animation-delay:300ms]" />
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Reveal card: Marcus was the AI */}
+            {showReveal && (
+              <div className="mt-6 mx-auto max-w-md animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <div className="rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 px-6 py-5 shadow-lg text-center">
+                  <p className="text-[11px] font-semibold text-primary uppercase tracking-widest mb-2">
+                    Plot twist
+                  </p>
+                  <p className="text-[18px] font-bold text-foreground mb-2">
+                    Marcus was the AI the whole time.
+                  </p>
+                  <p className="text-[13px] text-muted-foreground leading-relaxed mb-4">
+                    Every message from "Marcus" was generated by Mesh. The weather tips,
+                    flight research, visa info, activity suggestions, and budget math were all AI.
+                    Could you tell?
+                  </p>
+                  <p className="text-[12px] text-muted-foreground/70">
+                    This is what AI-native collaboration looks like. Not a chatbot in a sidebar.
+                    A teammate.
+                  </p>
+                  <button
+                    onClick={() => setShowReveal(false)}
+                    className="mt-4 text-[12px] font-medium text-primary hover:text-primary/80 transition-colors"
+                  >
+                    Dismiss
+                  </button>
                 </div>
               </div>
             )}
@@ -385,8 +599,9 @@ export function ChatApp() {
                 onChange={e => { setInput(e.target.value); autoResize(e.currentTarget) }}
                 onKeyDown={handleKeyDown}
                 placeholder="Type a message..."
+                disabled={demoActive}
                 className="w-full resize-none bg-transparent px-4 py-2 text-[13.5px] text-foreground
-                  placeholder:text-muted-foreground outline-none leading-relaxed"
+                  placeholder:text-muted-foreground outline-none leading-relaxed disabled:opacity-50"
               />
 
               {/* Toolbar row */}
@@ -396,7 +611,7 @@ export function ChatApp() {
                 </p>
                 <button
                   onClick={() => sendMessage()}
-                  disabled={!input.trim() || loading}
+                  disabled={!input.trim() || loading || demoActive}
                   aria-label="Send message"
                   className="flex items-center justify-center w-8 h-8 rounded-xl bg-primary text-primary-foreground
                     hover:opacity-90 active:scale-95 transition-all disabled:opacity-35 shrink-0 shadow-sm"
@@ -408,8 +623,33 @@ export function ChatApp() {
           </div>
         </main>
 
-        {/* Context sidebar */}
-        {sidebarOpen && <ContextSidebar items={contextItems} />}
+        {/* Context sidebar: desktop */}
+        {sidebarOpen && (
+          <div className="hidden md:flex">
+            <ContextSidebar
+              items={contextItems}
+              onToggleTask={toggleTask}
+              onJumpToMessage={scrollToMessage}
+            />
+          </div>
+        )}
+
+        {/* Context sidebar: mobile drawer */}
+        <Drawer open={mobileDrawer} onOpenChange={setMobileDrawer}>
+          <DrawerContent className="max-h-[85vh]">
+            <div className="overflow-y-auto">
+              <ContextSidebar
+                items={contextItems}
+                onToggleTask={toggleTask}
+                onJumpToMessage={(id) => {
+                  setMobileDrawer(false)
+                  scrollToMessage(id)
+                }}
+                mobile
+              />
+            </div>
+          </DrawerContent>
+        </Drawer>
       </div>
     </div>
   )

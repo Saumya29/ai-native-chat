@@ -1,28 +1,46 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
+import ReactMarkdown from 'react-markdown'
 import { type ChatMessage, type ChatUser } from '@/lib/types'
 
 interface MessageBubbleProps {
-  message:  ChatMessage
-  user:     ChatUser
-  isOwn:    boolean
-  grouped?: boolean
+  message:      ChatMessage
+  user:         ChatUser
+  isOwn:        boolean
+  grouped?:     boolean
+  highlighted?: boolean
 }
 
-export function MessageBubble({ message, user, isOwn, grouped }: MessageBubbleProps) {
+export function MessageBubble({ message, user, isOwn, grouped, highlighted }: MessageBubbleProps) {
   const isAI = message.role === 'ai'
+  const ref = useRef<HTMLDivElement>(null)
+  const [flash, setFlash] = useState(false)
 
   const time = new Date(message.timestamp).toLocaleTimeString([], {
     hour:   '2-digit',
     minute: '2-digit',
   })
 
+  useEffect(() => {
+    if (highlighted) {
+      ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      setFlash(true)
+      const timer = setTimeout(() => setFlash(false), 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [highlighted])
+
   return (
     <div
+      ref={ref}
+      data-message-id={message.id}
       className={`
         flex items-end gap-3
         ${isOwn ? 'flex-row-reverse' : 'flex-row'}
         ${grouped ? 'mt-1' : 'mt-5'}
+        ${flash ? 'animate-pulse rounded-xl ring-2 ring-primary/30' : ''}
+        transition-all duration-500
       `}
     >
       {/* Avatar */}
@@ -64,16 +82,22 @@ export function MessageBubble({ message, user, isOwn, grouped }: MessageBubblePr
 
         <div
           className={`
-            px-4 py-3 text-[13.5px] leading-relaxed whitespace-pre-wrap break-words
+            px-4 py-3 text-[13.5px] leading-relaxed break-words
             ${isAI
-              ? 'rounded-2xl rounded-bl-sm bg-white border border-primary/15 text-foreground shadow-sm'
+              ? 'rounded-2xl rounded-bl-sm bg-card border border-primary/15 text-foreground shadow-sm'
               : isOwn
               ? 'rounded-2xl rounded-br-sm bg-primary text-primary-foreground shadow-sm'
-              : 'rounded-2xl rounded-bl-sm bg-white border border-border text-foreground shadow-sm'
+              : 'rounded-2xl rounded-bl-sm bg-card border border-border text-foreground shadow-sm'
             }
           `}
         >
-          {message.content}
+          {isAI ? (
+            <div className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-strong:text-foreground prose-headings:text-foreground prose-headings:text-sm prose-headings:mt-2 prose-headings:mb-1 [&>p:first-child]:mt-0 [&>p:last-child]:mb-0">
+              <ReactMarkdown>{message.content}</ReactMarkdown>
+            </div>
+          ) : (
+            <span className="whitespace-pre-wrap">{message.content}</span>
+          )}
         </div>
       </div>
     </div>
