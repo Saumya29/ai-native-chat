@@ -1,4 +1,5 @@
 import { generateText, Output } from 'ai'
+import { openai } from '@ai-sdk/openai'
 import { z } from 'zod'
 
 export const runtime = 'nodejs'
@@ -42,7 +43,7 @@ export async function POST(req: Request) {
     const { messages } = await req.json()
 
     const { output } = await generateText({
-      model: 'openai/gpt-4o',
+      model: openai('gpt-4o'),
       system: SYSTEM_PROMPT,
       messages,
       output: Output.object({ schema: responseSchema }),
