@@ -3,12 +3,13 @@ export interface ChatUser {
   name: string
   initials: string
   color: string // tailwind bg class
+  role: string  // job title shown in the demo
 }
 
 export interface ChatMessage {
   id: string
   role: 'user' | 'ai'
-  userId?: string // if role === 'user'
+  userId?: string
   content: string
   timestamp: Date
 }
@@ -20,14 +21,15 @@ export interface ContextItem {
 }
 
 export const DEMO_USERS: ChatUser[] = [
-  { id: 'alice', name: 'Alice', initials: 'A', color: 'bg-indigo-500' },
-  { id: 'bob', name: 'Bob', initials: 'B', color: 'bg-emerald-500' },
-  { id: 'carol', name: 'Carol', initials: 'C', color: 'bg-amber-500' },
+  { id: 'jordan', name: 'Jordan',  initials: 'JK', color: 'bg-violet-500',  role: 'Product Manager' },
+  { id: 'marcus', name: 'Marcus',  initials: 'MR', color: 'bg-emerald-500', role: 'Engineering Lead' },
+  { id: 'priya',  name: 'Priya',   initials: 'PS', color: 'bg-rose-500',    role: 'Design Lead' },
 ]
 
 export const AI_USER: ChatUser = {
-  id: 'mesh-ai',
-  name: 'Mesh',
-  initials: 'M',
-  color: 'bg-primary',
+  id:       'mesh-ai',
+  name:     'Mesh',
+  initials: 'AI',
+  color:    'bg-primary',
+  role:     'AI Collaborator',
 }

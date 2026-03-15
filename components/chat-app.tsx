@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Send, PanelRight, PanelRightClose, X } from 'lucide-react'
+import { Send, PanelRight, PanelRightClose, X, ArrowUp } from 'lucide-react'
 import { DEMO_USERS, AI_USER, type ChatMessage, type ChatUser, type ContextItem } from '@/lib/types'
 import { UserSwitcher } from './user-switcher'
 import { MessageBubble } from './message-bubble'
@@ -11,40 +11,42 @@ let msgId = 0
 const nextId = () => `msg-${++msgId}`
 
 const DEMO_PROMPTS = [
-  "We've decided to use Next.js for the frontend",
-  "Bob will handle the design mockups by Friday",
-  "Our Q2 budget is capped at $8,000",
-  "Can you summarize what we've decided so far?",
+  "We've decided to go with Next.js for the frontend",
+  "Marcus will handle the CI/CD setup by end of week",
+  "Our Q2 engineering budget is capped at $15,000",
+  "Can you summarise what we've agreed on so far?",
 ]
 
 export function ChatApp() {
-  const [activeUser, setActiveUser] = useState<ChatUser>(DEMO_USERS[0])
-  const [messages, setMessages] = useState<ChatMessage[]>([
+  const [activeUser,      setActiveUser]      = useState<ChatUser>(DEMO_USERS[0])
+  const [messages,        setMessages]        = useState<ChatMessage[]>([
     {
-      id: nextId(),
-      role: 'ai',
-      content: "Hey team! I'm Mesh — I'll be your AI collaborator in this session.\n\nAs you chat, I'll track decisions, tasks, budget figures, and links in the panel on the right. Try making a decision or assigning a task to see it in action.",
+      id:        nextId(),
+      role:      'ai',
+      content:   "Hey team! I'm Mesh — your AI collaborator for this session.\n\nAs you chat, I'll track decisions, tasks, budget figures, and links in the panel on the right. Try making a decision or assigning a task to see it in action.",
       timestamp: new Date(),
     },
   ])
-  const [input, setInput] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [contextItems, setContextItems] = useState<ContextItem[]>([])
-  const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [bannerDismissed, setBannerDismissed] = useState(false)
-  const bottomRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLTextAreaElement>(null)
+  const [input,           setInput]           = useState('')
+  const [loading,         setLoading]         = useState(false)
+  const [contextItems,    setContextItems]    = useState<ContextItem[]>([])
+  const [sidebarOpen,     setSidebarOpen]     = useState(true)
+  const [bannerVisible,   setBannerVisible]   = useState(true)
+
+  const bottomRef  = useRef<HTMLDivElement>(null)
+  const inputRef   = useRef<HTMLTextAreaElement>(null)
+  const messagesRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+  }, [messages, loading])
 
   const addContextItems = useCallback((items: ContextItem[]) => {
-    if (items.length === 0) return
+    if (!items.length) return
     setContextItems(prev => {
-      const existingTexts = new Set(prev.map(i => i.text.toLowerCase()))
-      const newOnes = items.filter(i => !existingTexts.has(i.text.toLowerCase()))
-      return newOnes.length > 0 ? [...prev, ...newOnes] : prev
+      const seen = new Set(prev.map(i => i.text.toLowerCase()))
+      const fresh = items.filter(i => !seen.has(i.text.toLowerCase()))
+      return fresh.length ? [...prev, ...fresh] : prev
     })
   }, [])
 
@@ -53,20 +55,23 @@ export function ChatApp() {
     if (!text || loading) return
 
     const userMsg: ChatMessage = {
-      id: nextId(),
-      role: 'user',
-      userId: activeUser.id,
-      content: text,
+      id:        nextId(),
+      role:      'user',
+      userId:    activeUser.id,
+      content:   text,
       timestamp: new Date(),
     }
 
     setMessages(prev => [...prev, userMsg])
     setInput('')
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto'
+    }
     setLoading(true)
 
     try {
       const history = [...messages, userMsg].map(m => ({
-        role: m.role === 'ai' ? 'assistant' : 'user',
+        role:    m.role === 'ai' ? 'assistant' : 'user',
         content:
           m.role === 'user'
             ? `[${DEMO_USERS.find(u => u.id === m.userId)?.name ?? 'User'}]: ${m.content}`
@@ -74,22 +79,23 @@ export function ChatApp() {
       }))
 
       const res = await fetch('/api/chat', {
-        method: 'POST',
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: history }),
+        body:    JSON.stringify({ messages: history }),
       })
 
-      if (!res.ok) throw new Error('API error')
-
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data = await res.json()
 
-      const aiMsg: ChatMessage = {
-        id: nextId(),
-        role: 'ai',
-        content: data.content,
-        timestamp: new Date(),
-      }
-      setMessages(prev => [...prev, aiMsg])
+      setMessages(prev => [
+        ...prev,
+        {
+          id:        nextId(),
+          role:      'ai',
+          content:   data.content,
+          timestamp: new Date(),
+        },
+      ])
 
       if (data.contextItems?.length) {
         addContextItems(
@@ -104,9 +110,9 @@ export function ChatApp() {
       setMessages(prev => [
         ...prev,
         {
-          id: nextId(),
-          role: 'ai',
-          content: 'Something went wrong. Please try again.',
+          id:        nextId(),
+          role:      'ai',
+          content:   'Something went wrong. Please try again.',
           timestamp: new Date(),
         },
       ])
@@ -123,49 +129,62 @@ export function ChatApp() {
     }
   }
 
+  function autoResize(el: HTMLTextAreaElement) {
+    el.style.height = 'auto'
+    el.style.height = `${Math.min(el.scrollHeight, 140)}px`
+  }
+
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
-      {/* Header */}
-      <header className="flex items-center justify-between px-4 h-13 border-b border-border bg-card shrink-0">
-        <div className="flex items-center gap-3">
-          {/* Logo */}
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-primary flex items-center justify-center">
-              <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                <circle cx="4" cy="4" r="2.5" fill="white" />
-                <circle cx="10" cy="4" r="2.5" fill="white" opacity="0.6" />
-                <circle cx="4" cy="10" r="2.5" fill="white" opacity="0.6" />
-                <circle cx="10" cy="10" r="2.5" fill="white" opacity="0.3" />
+
+      {/* ── Header ── */}
+      <header className="flex items-center justify-between px-5 h-14 border-b border-border bg-card shrink-0">
+
+        {/* Left: brand + room */}
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center shadow-sm">
+              <svg width="13" height="13" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <circle cx="6"  cy="6"  r="3.5" fill="white" />
+                <circle cx="14" cy="6"  r="3.5" fill="white" fillOpacity="0.55" />
+                <circle cx="6"  cy="14" r="3.5" fill="white" fillOpacity="0.55" />
+                <circle cx="14" cy="14" r="3.5" fill="white" fillOpacity="0.25" />
               </svg>
             </div>
-            <span className="text-sm font-semibold tracking-tight text-foreground">mesh</span>
+            <span className="text-[14px] font-semibold tracking-tight text-foreground">mesh</span>
           </div>
-          <span className="text-border">|</span>
-          <div className="flex items-center gap-1.5">
-            <span className="text-sm text-foreground font-medium">Product Sprint</span>
-            <span className="text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">
-              demo
+
+          <span className="text-border select-none">/</span>
+
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-[13px] font-medium text-foreground truncate">Product Sprint</span>
+            <span className="shrink-0 text-[10px] font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full leading-none">
+              DEMO
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Participant avatars */}
-          <div className="flex items-center -space-x-1.5 mr-1">
+        {/* Right: avatars + switcher + panel toggle */}
+        <div className="flex items-center gap-3 shrink-0">
+
+          {/* Stacked avatars */}
+          <div className="flex items-center -space-x-1.5">
             {DEMO_USERS.map(u => (
               <div
                 key={u.id}
-                title={u.name}
-                className={`w-6 h-6 rounded-full ${u.color} flex items-center justify-center border-2 border-card`}
+                title={`${u.name} — ${u.role}`}
+                className={`w-7 h-7 rounded-full ${u.color} flex items-center justify-center
+                  border-[2px] border-card shadow-sm ring-0`}
               >
                 <span className="text-[9px] font-bold text-white leading-none">{u.initials}</span>
               </div>
             ))}
             <div
               title="Mesh (AI)"
-              className="w-6 h-6 rounded-full bg-primary flex items-center justify-center border-2 border-card"
+              className="w-7 h-7 rounded-full bg-primary flex items-center justify-center
+                border-[2px] border-card shadow-sm"
             >
-              <span className="text-[9px] font-bold text-white leading-none">M</span>
+              <span className="text-[9px] font-bold text-white leading-none">AI</span>
             </div>
           </div>
 
@@ -173,13 +192,15 @@ export function ChatApp() {
 
           <button
             onClick={() => setSidebarOpen(o => !o)}
-            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors relative"
+            className="relative flex items-center justify-center w-8 h-8 rounded-lg
+              text-muted-foreground hover:text-foreground hover:bg-secondary border border-transparent
+              hover:border-border transition-all"
             aria-label={sidebarOpen ? 'Hide context panel' : 'Show context panel'}
-            title={sidebarOpen ? 'Hide context panel' : 'Show context panel'}
           >
-            {sidebarOpen ? <PanelRightClose size={16} /> : <PanelRight size={16} />}
+            {sidebarOpen ? <PanelRightClose size={15} /> : <PanelRight size={15} />}
             {!sidebarOpen && contextItems.length > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-primary text-primary-foreground text-[8px] font-bold flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary text-primary-foreground
+                text-[9px] font-bold flex items-center justify-center shadow">
                 {contextItems.length}
               </span>
             )}
@@ -187,29 +208,35 @@ export function ChatApp() {
         </div>
       </header>
 
-      {/* Body */}
+      {/* ── Body ── */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Chat area */}
+
+        {/* Chat column */}
         <main className="flex flex-col flex-1 overflow-hidden min-w-0">
 
           {/* Demo guide banner */}
-          {!bannerDismissed && (
-            <div className="mx-4 mt-3 shrink-0">
-              <div className="rounded-xl border border-primary/20 bg-primary/[0.04] px-4 py-3">
+          {bannerVisible && (
+            <div className="mx-5 mt-4 shrink-0">
+              <div className="rounded-xl border border-border bg-card shadow-sm px-4 py-3.5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-foreground mb-2">
+                    <p className="text-[12px] font-semibold text-foreground mb-0.5">
                       How to demo Mesh
                     </p>
-                    <div className="flex flex-wrap gap-1.5">
+                    <p className="text-[11.5px] text-muted-foreground mb-3 leading-relaxed">
+                      Click a prompt below to start — or type your own. Switch users in the header to
+                      simulate a real group.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
                       {DEMO_PROMPTS.map(prompt => (
                         <button
                           key={prompt}
                           onClick={() => {
+                            setBannerVisible(false)
                             sendMessage(prompt)
-                            setBannerDismissed(true)
                           }}
-                          className="text-[11px] text-primary bg-primary/10 hover:bg-primary/20 border border-primary/20 rounded-full px-2.5 py-1 transition-colors leading-none"
+                          className="text-[11.5px] text-primary border border-primary/30 bg-primary/5
+                            hover:bg-primary/10 rounded-lg px-3 py-1.5 transition-colors leading-snug text-left"
                         >
                           {prompt}
                         </button>
@@ -217,30 +244,27 @@ export function ChatApp() {
                     </div>
                   </div>
                   <button
-                    onClick={() => setBannerDismissed(true)}
-                    className="text-muted-foreground hover:text-foreground transition-colors shrink-0 mt-0.5"
-                    aria-label="Dismiss"
+                    onClick={() => setBannerVisible(false)}
+                    className="text-muted-foreground hover:text-foreground transition-colors shrink-0 mt-0.5 p-0.5"
+                    aria-label="Dismiss guide"
                   >
-                    <X size={13} />
+                    <X size={14} />
                   </button>
                 </div>
-                <p className="text-[10px] text-muted-foreground mt-2">
-                  Click a prompt above, or type your own message. Switch users in the header to simulate a group conversation.
-                </p>
               </div>
             </div>
           )}
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto px-4 pt-2 pb-3">
+          <div ref={messagesRef} className="flex-1 overflow-y-auto px-5 pt-3 pb-2">
             {messages.map((msg, i) => {
-              const user = msg.role === 'ai' ? AI_USER : DEMO_USERS.find(u => u.id === msg.userId)!
+              const user    = msg.role === 'ai' ? AI_USER : DEMO_USERS.find(u => u.id === msg.userId)!
               const prevMsg = messages[i - 1]
-              const isGrouped =
-                prevMsg &&
+              const grouped =
+                !!prevMsg &&
                 prevMsg.role === msg.role &&
                 prevMsg.userId === msg.userId &&
-                new Date(msg.timestamp).getTime() - new Date(prevMsg.timestamp).getTime() < 60000
+                new Date(msg.timestamp).getTime() - new Date(prevMsg.timestamp).getTime() < 90_000
 
               return (
                 <MessageBubble
@@ -248,24 +272,22 @@ export function ChatApp() {
                   message={msg}
                   user={user}
                   isOwn={msg.role === 'user' && msg.userId === activeUser.id}
-                  grouped={!!isGrouped}
+                  grouped={grouped}
                 />
               )
             })}
 
+            {/* Typing indicator */}
             {loading && (
-              <div className="flex items-start gap-2.5 mt-4">
-                <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-[10px] font-bold text-white leading-none">M</span>
+              <div className="flex items-end gap-3 mt-5">
+                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0 shadow-sm">
+                  <span className="text-[9px] font-bold text-white">AI</span>
                 </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-xs font-semibold text-primary">
-                    Mesh <span className="text-[10px] font-medium text-primary/60 bg-primary/8 px-1.5 py-0.5 rounded-full">AI</span>
-                  </span>
-                  <div className="px-3.5 py-3 rounded-2xl rounded-tl-sm bg-primary/[0.06] border border-primary/10 flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary/40 animate-bounce [animation-delay:0ms]" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary/40 animate-bounce [animation-delay:120ms]" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary/40 animate-bounce [animation-delay:240ms]" />
+                <div className="bg-white border border-primary/15 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary/50 animate-bounce [animation-delay:0ms]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary/50 animate-bounce [animation-delay:150ms]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary/50 animate-bounce [animation-delay:300ms]" />
                   </div>
                 </div>
               </div>
@@ -274,47 +296,48 @@ export function ChatApp() {
             <div ref={bottomRef} />
           </div>
 
-          {/* Input area */}
-          <div className="px-4 pb-4 shrink-0">
-            <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20 transition-all">
-              {/* Who's typing indicator */}
-              <div className="flex items-center gap-2 px-3.5 pt-2.5 pb-1">
+          {/* Input */}
+          <div className="px-5 pb-5 pt-2 shrink-0">
+            <div
+              className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden
+                focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20 transition-all"
+            >
+              {/* "Sending as" row */}
+              <div className="flex items-center gap-2 px-4 pt-3 pb-1">
                 <div className={`w-5 h-5 rounded-full ${activeUser.color} flex items-center justify-center shrink-0`}>
-                  <span className="text-[9px] font-bold text-white leading-none">{activeUser.initials}</span>
+                  <span className="text-[8px] font-bold text-white leading-none">{activeUser.initials}</span>
                 </div>
-                <span className="text-[11px] text-muted-foreground font-medium">
-                  Sending as <span className="text-foreground">{activeUser.name}</span>
+                <span className="text-[11.5px] text-muted-foreground">
+                  Chatting as <span className="font-semibold text-foreground">{activeUser.name}</span>
+                  <span className="text-muted-foreground/60"> · {activeUser.role}</span>
                 </span>
               </div>
 
+              {/* Textarea */}
               <textarea
                 ref={inputRef}
                 rows={1}
                 value={input}
-                onChange={e => setInput(e.target.value)}
+                onChange={e => { setInput(e.target.value); autoResize(e.currentTarget) }}
                 onKeyDown={handleKeyDown}
                 placeholder="Type a message..."
-                className="w-full resize-none bg-transparent px-3.5 pb-2 pt-1 text-sm text-foreground placeholder:text-muted-foreground outline-none leading-relaxed max-h-32 overflow-y-auto"
-                style={{ height: 'auto' }}
-                onInput={e => {
-                  const el = e.currentTarget
-                  el.style.height = 'auto'
-                  el.style.height = `${el.scrollHeight}px`
-                }}
+                className="w-full resize-none bg-transparent px-4 py-2 text-[13.5px] text-foreground
+                  placeholder:text-muted-foreground outline-none leading-relaxed"
               />
 
-              <div className="flex items-center justify-between px-3 pb-2.5 gap-2">
-                <p className="text-[10px] text-muted-foreground">
-                  Enter to send &middot; Shift+Enter for new line
+              {/* Toolbar row */}
+              <div className="flex items-center justify-between px-4 pb-3 pt-1 gap-2">
+                <p className="text-[11px] text-muted-foreground/70">
+                  Enter to send &nbsp;·&nbsp; Shift+Enter for new line
                 </p>
                 <button
                   onClick={() => sendMessage()}
                   disabled={!input.trim() || loading}
-                  className="flex items-center gap-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium px-3 py-1.5 hover:opacity-90 active:opacity-80 transition-opacity disabled:opacity-40 shrink-0"
                   aria-label="Send message"
+                  className="flex items-center justify-center w-8 h-8 rounded-xl bg-primary text-primary-foreground
+                    hover:opacity-90 active:scale-95 transition-all disabled:opacity-35 shrink-0 shadow-sm"
                 >
-                  <Send size={12} />
-                  Send
+                  <ArrowUp size={15} />
                 </button>
               </div>
             </div>
