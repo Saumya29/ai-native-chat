@@ -11,25 +11,90 @@ let msgId = 0
 const nextId = () => `msg-${++msgId}`
 
 const DEMO_PROMPTS = [
-  "We've decided to go with Next.js for the frontend",
-  "Marcus will handle the CI/CD setup by end of week",
-  "Our Q2 engineering budget is capped at $15,000",
-  "Can you summarise what we've agreed on so far?",
+  "Can you summarise everything we've agreed on so far?",
+  "Mesh, what are the open tasks right now?",
+  "Let's set our seed round target at $2M",
+  "Priya will own the design system end of next week",
+]
+
+// Pre-seeded conversation — showcases an AI-native messaging startup team
+// planning their MVP (scenario deliberately mirrors Herman Narula's post)
+const t = (minutesAgo: number) => new Date(Date.now() - minutesAgo * 60_000)
+
+const SEED_MESSAGES: ChatMessage[] = [
+  {
+    id: nextId(), role: 'user', userId: 'jordan',
+    content: "Alright team, let's lock the core decisions for the MVP before EOD. Top priority: what does the AI participant actually DO in a conversation? Summarise, extract tasks, or something more proactive?",
+    timestamp: t(42),
+  },
+  {
+    id: nextId(), role: 'user', userId: 'marcus',
+    content: "I think the minimum viable behaviour is: listen to everything, surface decisions and action items in a side panel, and only speak up when asked. No unsolicited replies. That's enough to prove the value without being annoying.",
+    timestamp: t(40),
+  },
+  {
+    id: nextId(), role: 'user', userId: 'priya',
+    content: "Agreed. From a design perspective, the AI should feel like a silent note-taker — present but not intrusive. The side panel is the output, not the chat thread itself.",
+    timestamp: t(38),
+  },
+  {
+    id: nextId(), role: 'ai',
+    content: "Got it. Recording that as a core design principle:\n\n**Decision:** The AI participant operates in a \"listen-first\" mode — it surfaces structured context (decisions, tasks, links) in the side panel and only responds in the chat when explicitly addressed.\n\nThis is now tracked in the Context Panel on the right.",
+    timestamp: t(37),
+  },
+  {
+    id: nextId(), role: 'user', userId: 'jordan',
+    content: "Perfect. Next: stack. Marcus, what are you thinking?",
+    timestamp: t(35),
+  },
+  {
+    id: nextId(), role: 'user', userId: 'marcus',
+    content: "Next.js + TypeScript for the frontend and API layer — monorepo keeps it simple. For real-time we'll start with SSE, upgrade to WebSockets when we need bidirectional. OpenAI GPT-4o for the AI core, with the option to swap models later.\n\nBudget estimate for infra in the first 3 months: around $4,000.",
+    timestamp: t(33),
+  },
+  {
+    id: nextId(), role: 'user', userId: 'priya',
+    content: "Works for me. I'll have the design system — tokens, component library, the base Figma file — ready by Friday. I'm scoping the messaging UI to feel like Linear meets iMessage.",
+    timestamp: t(31),
+  },
+  {
+    id: nextId(), role: 'ai',
+    content: "Capturing a few things from that:\n\n**Decision:** Tech stack is Next.js + TypeScript (monorepo), SSE for real-time, GPT-4o as the AI model.\n\n**Task:** Priya to deliver the design system and Figma file by Friday.\n\n**Budget:** $4,000 estimated for infra over the first 3 months.\n\nAnything to add or correct?",
+    timestamp: t(30),
+  },
+  {
+    id: nextId(), role: 'user', userId: 'marcus',
+    content: "One more: I'll set up the CI/CD pipeline and the staging environment by end of this week. Target is zero-downtime deploys from day one.",
+    timestamp: t(28),
+  },
+  {
+    id: nextId(), role: 'user', userId: 'jordan',
+    content: "Great. On the product side — let's keep the MVP scope tight. Group chat with AI participant, context panel, and a shareable demo link. No auth, no persistence beyond the session for now. Ship fast, get feedback.\n\nHere's the Notion doc with the full spec: https://notion.so/mesh-mvp-spec",
+    timestamp: t(25),
+  },
+  {
+    id: nextId(), role: 'ai',
+    content: "Added that to the panel.\n\n**Task:** Marcus to set up CI/CD pipeline and staging environment by end of week.\n\n**Decision:** MVP scope — group chat with AI participant + context panel + shareable demo link. No auth or persistence in v1.\n\n**Link:** https://notion.so/mesh-mvp-spec\n\nYou're in good shape. Three decisions locked, three tasks assigned, infra budget set. Ready to build.",
+    timestamp: t(24),
+  },
+]
+
+const SEED_CONTEXT: ContextItem[] = [
+  { type: 'decision', text: 'AI participant operates in listen-first mode — surfaces context in the side panel, only replies when addressed.',  addedAt: t(37) },
+  { type: 'decision', text: 'Tech stack: Next.js + TypeScript (monorepo), SSE for real-time, GPT-4o as the AI model.', addedAt: t(30) },
+  { type: 'decision', text: 'MVP scope: group chat + AI participant + context panel + shareable demo link. No auth or persistence in v1.', addedAt: t(24) },
+  { type: 'task',     text: 'Priya — deliver design system, component library, and Figma file by Friday.',             addedAt: t(30) },
+  { type: 'task',     text: 'Marcus — set up CI/CD pipeline and staging environment by end of week.',                 addedAt: t(24) },
+  { type: 'budget',   text: '$4,000 estimated for infrastructure over the first 3 months.',                           addedAt: t(30) },
+  { type: 'link',     text: 'https://notion.so/mesh-mvp-spec',                                                        addedAt: t(24) },
 ]
 
 export function ChatApp() {
   const [activeUser,      setActiveUser]      = useState<ChatUser>(DEMO_USERS[0])
-  const [messages,        setMessages]        = useState<ChatMessage[]>([
-    {
-      id:        nextId(),
-      role:      'ai',
-      content:   "Hey team! I'm Mesh — your AI collaborator for this session.\n\nAs you chat, I'll track decisions, tasks, budget figures, and links in the panel on the right. Try making a decision or assigning a task to see it in action.",
-      timestamp: new Date(),
-    },
-  ])
+  const [messages,        setMessages]        = useState<ChatMessage[]>(SEED_MESSAGES)
   const [input,           setInput]           = useState('')
   const [loading,         setLoading]         = useState(false)
-  const [contextItems,    setContextItems]    = useState<ContextItem[]>([])
+  const [contextItems,    setContextItems]    = useState<ContextItem[]>(SEED_CONTEXT)
   const [sidebarOpen,     setSidebarOpen]     = useState(true)
   const [bannerVisible,   setBannerVisible]   = useState(true)
 
@@ -224,8 +289,7 @@ export function ChatApp() {
                       How to demo Mesh
                     </p>
                     <p className="text-[11.5px] text-muted-foreground mb-3 leading-relaxed">
-                      Click a prompt below to start — or type your own. Switch users in the header to
-                      simulate a real group.
+                      The team has been planning their MVP. Continue the conversation below — or pick a prompt to see Mesh in action.
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {DEMO_PROMPTS.map(prompt => (
