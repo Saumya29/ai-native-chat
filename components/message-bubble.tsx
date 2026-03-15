@@ -1,6 +1,6 @@
 'use client'
 
-import { type ChatMessage, type ChatUser, AI_USER } from '@/lib/types'
+import { type ChatMessage, type ChatUser } from '@/lib/types'
 
 interface MessageBubbleProps {
   message: ChatMessage
@@ -18,34 +18,39 @@ export function MessageBubble({ message, user, isOwn, grouped }: MessageBubblePr
   })
 
   return (
-    <div className={`flex items-end gap-2 ${isOwn ? 'flex-row-reverse' : 'flex-row'} ${grouped ? 'mt-0.5' : 'mt-3'}`}>
+    <div className={`flex items-start gap-2.5 ${isOwn ? 'flex-row-reverse' : 'flex-row'} ${grouped ? 'mt-0.5' : 'mt-4'}`}>
       {/* Avatar */}
       {!grouped ? (
         <div
-          className={`w-7 h-7 rounded-full ${user.color} flex items-center justify-center shrink-0`}
+          className={`w-7 h-7 rounded-full ${user.color} flex items-center justify-center shrink-0 mt-0.5`}
           aria-label={user.name}
         >
-          <span className="text-[10px] font-semibold text-white">{user.initials}</span>
+          <span className="text-[10px] font-bold text-white leading-none">{user.initials}</span>
         </div>
       ) : (
         <div className="w-7 shrink-0" />
       )}
 
-      {/* Bubble */}
-      <div className={`flex flex-col gap-0.5 max-w-[70%] ${isOwn ? 'items-end' : 'items-start'}`}>
+      {/* Content */}
+      <div className={`flex flex-col gap-1 max-w-[75%] ${isOwn ? 'items-end' : 'items-start'}`}>
         {!grouped && (
-          <div className={`flex items-baseline gap-1.5 ${isOwn ? 'flex-row-reverse' : ''}`}>
-            <span className="text-xs font-medium text-foreground">{isAI ? 'Mesh' : user.name}</span>
+          <div className={`flex items-center gap-1.5 ${isOwn ? 'flex-row-reverse' : ''}`}>
+            <span className={`text-xs font-semibold ${isAI ? 'text-primary' : 'text-foreground'}`}>
+              {isAI ? 'Mesh' : user.name}
+              {isAI && (
+                <span className="ml-1.5 text-[10px] font-medium text-primary/60 bg-primary/8 px-1.5 py-0.5 rounded-full align-middle">AI</span>
+              )}
+            </span>
             <span className="text-[10px] text-muted-foreground">{time}</span>
           </div>
         )}
         <div
-          className={`px-3.5 py-2 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${
+          className={`px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap break-words ${
             isAI
-              ? 'bg-mesh-ai-bg text-mesh-ai-fg rounded-bl-sm'
+              ? 'rounded-2xl rounded-tl-sm bg-primary/[0.06] text-foreground border border-primary/10'
               : isOwn
-              ? 'bg-primary text-primary-foreground rounded-br-sm'
-              : 'bg-secondary text-secondary-foreground rounded-bl-sm'
+              ? 'rounded-2xl rounded-tr-sm bg-primary text-primary-foreground'
+              : 'rounded-2xl rounded-tl-sm bg-secondary text-secondary-foreground'
           }`}
         >
           {message.content}
