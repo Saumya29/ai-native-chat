@@ -51,7 +51,7 @@ const ORDER: ContextItem['type'][] = ['decision', 'task', 'budget', 'link']
 
 const DEMO_SUGGESTIONS = [
   { type: 'decision', text: '"We\'re going with Next.js for the frontend"' },
-  { type: 'task',     text: '"Marcus will set up the CI/CD pipeline"' },
+  { type: 'task',     text: '"Luca will set up the CI/CD pipeline"' },
   { type: 'budget',   text: '"Q2 engineering budget is $15,000"' },
 ]
 

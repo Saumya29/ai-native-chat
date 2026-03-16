@@ -25,17 +25,24 @@ const DEMO_PROMPTS = [
   "Priya will own the design system end of next week",
 ]
 
+const POST_DEMO_PROMPTS = [
+  "How would you design a confidence gate for AI that knows when to speak vs stay silent?",
+  "What are the tradeoffs of frequency capping vs confidence gating for AI behavior?",
+  "Help me think through per-room calibration for AI activity levels",
+  "We're planning a product sprint — what should we prioritize this week?",
+]
+
 // Pre-seeded conversation
 const t = (minutesAgo: number) => new Date(Date.now() - minutesAgo * 60_000)
 
 const SEED_MESSAGES: ChatMessage[] = [
   {
-    id: nextId(), role: 'user', userId: 'jordan',
+    id: nextId(), role: 'user', userId: 'herman',
     content: "Alright team, let's lock the core decisions for the MVP before EOD. Top priority: what does the AI participant actually DO in a conversation? Summarise, extract tasks, or something more proactive?",
     timestamp: t(42),
   },
   {
-    id: nextId(), role: 'user', userId: 'marcus',
+    id: nextId(), role: 'user', userId: 'luca',
     content: "I think the minimum viable behaviour is: listen to everything, surface decisions and action items in a side panel, and only speak up when asked. No unsolicited replies. That's enough to prove the value without being annoying.",
     timestamp: t(40),
   },
@@ -50,12 +57,12 @@ const SEED_MESSAGES: ChatMessage[] = [
     timestamp: t(37),
   },
   {
-    id: nextId(), role: 'user', userId: 'jordan',
-    content: "Perfect. Next: stack. Marcus, what are you thinking?",
+    id: nextId(), role: 'user', userId: 'herman',
+    content: "Perfect. Next: stack. Luca, what are you thinking?",
     timestamp: t(35),
   },
   {
-    id: nextId(), role: 'user', userId: 'marcus',
+    id: nextId(), role: 'user', userId: 'luca',
     content: "Next.js + TypeScript for the frontend and API layer. Monorepo keeps it simple. For real-time we'll start with SSE, upgrade to WebSockets when we need bidirectional. OpenAI GPT-4o for the AI core, with the option to swap models later.\n\nBudget estimate for infra in the first 3 months: around $4,000.",
     timestamp: t(33),
   },
@@ -70,18 +77,18 @@ const SEED_MESSAGES: ChatMessage[] = [
     timestamp: t(30),
   },
   {
-    id: nextId(), role: 'user', userId: 'marcus',
+    id: nextId(), role: 'user', userId: 'luca',
     content: "One more: I'll set up the CI/CD pipeline and the staging environment by end of this week. Target is zero-downtime deploys from day one.",
     timestamp: t(28),
   },
   {
-    id: nextId(), role: 'user', userId: 'jordan',
+    id: nextId(), role: 'user', userId: 'herman',
     content: "Great. On the product side, let's keep the MVP scope tight. Group chat with AI participant, context panel, and a shareable demo link. No auth, no persistence beyond the session for now. Ship fast, get feedback.\n\nHere's the full PRD: /prd",
     timestamp: t(25),
   },
   {
     id: nextId(), role: 'ai',
-    content: "Added that to the panel.\n\n**Task:** Marcus to set up CI/CD pipeline and staging environment by end of week.\n\n**Decision:** MVP scope is group chat with AI participant + context panel + shareable demo link. No auth or persistence in v1.\n\n**Link:** PRD spec\n\nYou're in good shape. Three decisions locked, three tasks assigned, infra budget set. Ready to build.",
+    content: "Added that to the panel.\n\n**Task:** Luca to set up CI/CD pipeline and staging environment by end of week.\n\n**Decision:** MVP scope is group chat with AI participant + context panel + shareable demo link. No auth or persistence in v1.\n\n**Link:** PRD spec\n\nYou're in good shape. Three decisions locked, three tasks assigned, infra budget set. Ready to build.",
     timestamp: t(24),
   },
 ]
@@ -91,7 +98,7 @@ const SEED_CONTEXT: ContextItem[] = [
   { type: 'decision', text: 'Tech stack: Next.js + TypeScript (monorepo), SSE for real-time, GPT-4o as the AI model.', addedAt: t(30) },
   { type: 'decision', text: 'MVP scope: group chat + AI participant + context panel + shareable demo link. No auth or persistence in v1.', addedAt: t(24) },
   { type: 'task',     text: 'Priya: deliver design system, component library, and Figma file by Friday.', status: 'open', addedAt: t(30) },
-  { type: 'task',     text: 'Marcus: set up CI/CD pipeline and staging environment by end of week.', status: 'open', addedAt: t(24) },
+  { type: 'task',     text: 'Luca: set up CI/CD pipeline and staging environment by end of week.', status: 'open', addedAt: t(24) },
   { type: 'budget',   text: '$4,000 estimated for infrastructure over the first 3 months.',                           addedAt: t(30) },
   { type: 'link',     text: '/prd',                                                        addedAt: t(24) },
 ]
@@ -112,6 +119,7 @@ export function ChatApp() {
   const [showReveal,      setShowReveal]      = useState(false)
   const [mobileDrawer,    setMobileDrawer]    = useState(false)
   const [feedback,        setFeedback]        = useState<Map<string, 'up' | 'down'>>(new Map())
+  const [postDemo,        setPostDemo]        = useState(false)
   const { theme, setTheme } = useTheme()
 
   const bottomRef  = useRef<HTMLDivElement>(null)
@@ -120,7 +128,7 @@ export function ChatApp() {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, loading])
+  }, [messages, loading, showReveal])
 
   // "Mesh is listening" flash
   const showListening = useCallback(() => {
@@ -326,11 +334,11 @@ export function ChatApp() {
     setDemoActive(true)
     setMessages([])
     setContextItems([])
-    setRoomName('Launch Pricing')
+    setRoomName('AI Behavior Design')
     setBannerVisible(false)
     setRoomSettings(prev => ({
       ...prev,
-      roomRules: 'Always include unit economics when discussing pricing.\nNever suggest budget cuts without presenting alternatives.',
+      roomRules: 'AI should contribute substantive analysis, not just summaries — if you can run the numbers, run them.\nNever speak during casual banter or emotional moments. Earn your presence.',
     }))
   }, [])
 
@@ -537,6 +545,46 @@ export function ChatApp() {
             </div>
           )}
 
+          {/* Post-demo guide banner */}
+          {postDemo && messages.length === 0 && (
+            <div className="mx-5 mt-4 shrink-0">
+              <div className="rounded-xl border border-border bg-card shadow-sm px-4 py-3.5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-semibold text-foreground mb-0.5">
+                      Chat with Mesh
+                    </p>
+                    <p className="text-[13px] text-muted-foreground mb-3 leading-relaxed">
+                      Mesh is the AI that was posing as &quot;Luca.&quot; Ask it a real question to see it respond — or pick one below.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {POST_DEMO_PROMPTS.map(prompt => (
+                        <button
+                          key={prompt}
+                          onClick={() => {
+                            setPostDemo(false)
+                            sendMessage(prompt)
+                          }}
+                          className="text-[13px] text-primary border border-primary/30 bg-primary/5
+                            hover:bg-primary/10 rounded-lg px-3 py-1.5 transition-colors leading-snug text-left"
+                        >
+                          {prompt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setPostDemo(false)}
+                    className="text-muted-foreground hover:text-foreground transition-colors shrink-0 mt-0.5 p-0.5"
+                    aria-label="Dismiss guide"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Messages */}
           <div ref={messagesRef} className="flex-1 overflow-y-auto px-5 pt-3 pb-2">
             {messages.map((msg, i) => {
@@ -552,11 +600,10 @@ export function ChatApp() {
 
               // Show callout before the first agent message
               const isFirstAgent = msg.role === 'agent' && (!prevMsg || prevMsg.role !== 'agent')
-              const prevIsNotAgent = !prevMsg || prevMsg.role !== 'agent'
 
               return (
                 <div key={msg.id}>
-                  {isFirstAgent && prevIsNotAgent && (
+                  {isFirstAgent && (
                     <div className="mt-5 mb-3 mx-auto max-w-sm animate-in fade-in slide-in-from-bottom-2 duration-500">
                       <div className="rounded-xl border border-dashed border-primary/25 bg-primary/5 px-4 py-2.5 text-center">
                         <p className="text-[12px] font-semibold text-primary uppercase tracking-widest mb-0.5">
@@ -598,7 +645,7 @@ export function ChatApp() {
               </div>
             )}
 
-            {/* Reveal card: Marcus was the AI */}
+            {/* Reveal card: Luca was the AI */}
             {showReveal && (
               <div className="mt-6 mx-auto max-w-md animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <div className="rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 px-6 py-5 shadow-lg text-center">
@@ -606,18 +653,18 @@ export function ChatApp() {
                     Plot twist
                   </p>
                   <p className="text-[18px] font-bold text-foreground mb-2">
-                    Marcus was the AI the whole time.
+                    Luca was the AI the whole time.
                   </p>
                   <p className="text-[14px] text-muted-foreground leading-relaxed mb-4">
-                    Every message from &quot;Marcus&quot; was generated by Mesh. The unit economics,
-                    the fatal flaw in flat pricing, the two-tier proposal, the LOI risk,
-                    the A/B test suggestion. All AI. Could you tell?
+                    The beta data analysis, the flaw in frequency-capping, the three-mode
+                    architecture, the dogfooding suggestion. All AI — designing the rules
+                    for its own behavior. Could you tell?
                   </p>
                   <div className="text-left space-y-2 mb-4">
                     <div className="flex items-start gap-2">
                       <span className="text-[11px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full leading-none mt-0.5 shrink-0">1</span>
                       <p className="text-[13px] text-muted-foreground leading-relaxed">
-                        <span className="font-semibold text-foreground">AI with taste.</span> Mesh contributed real analysis and stayed silent during banter.
+                        <span className="font-semibold text-foreground">AI with judgment.</span> Mesh contributed real analysis and stayed silent during banter.
                       </p>
                     </div>
                     <div className="flex items-start gap-2">
@@ -629,19 +676,32 @@ export function ChatApp() {
                     <div className="flex items-start gap-2">
                       <span className="text-[11px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full leading-none mt-0.5 shrink-0">3</span>
                       <p className="text-[13px] text-muted-foreground leading-relaxed">
-                        <span className="font-semibold text-foreground">Community intelligence.</span> The team shapes AI behavior through rules and feedback.
+                        <span className="font-semibold text-foreground">Community intelligence.</span> Exactly what the team just decided to build — the room rules and feedback that shape AI behavior.
                       </p>
                     </div>
                   </div>
                   <p className="text-[13px] text-muted-foreground leading-relaxed mb-3">
-                    Send a message below to see Mesh respond. Then use the thumbs up/down to give feedback, or tap the gear icon to see the room rules the team set.
+                    &quot;Luca&quot; is really <span className="font-semibold text-foreground">Mesh</span>, the AI. Start a fresh chat and ask Mesh a question to see it respond. Use thumbs up/down to give feedback, or tap the gear icon to see the room rules.
                   </p>
-                  <button
-                    onClick={() => setShowReveal(false)}
-                    className="text-[13px] font-medium text-primary hover:text-primary/80 transition-colors"
-                  >
-                    Dismiss
-                  </button>
+                  <div className="flex items-center justify-center gap-4">
+                    <button
+                      onClick={() => setShowReveal(false)}
+                      className="text-[13px] font-medium text-primary hover:text-primary/80 transition-colors"
+                    >
+                      Dismiss
+                    </button>
+                    <button
+                      onClick={() => {
+                        setMessages([])
+                        setContextItems([])
+                        setShowReveal(false)
+                        setPostDemo(true)
+                      }}
+                      className="text-[13px] font-medium text-primary bg-primary/10 hover:bg-primary/15 px-3 py-1.5 rounded-lg transition-colors"
+                    >
+                      Start a fresh chat
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

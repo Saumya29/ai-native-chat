@@ -149,7 +149,7 @@ export function MessageBubble({ message, user, isOwn, grouped, highlighted, agen
             isAI
               ? 'prose-strong:text-foreground prose-headings:text-foreground'
               : isOwn
-              ? 'prose-strong:text-primary-foreground prose-headings:text-primary-foreground text-primary-foreground'
+              ? 'text-primary-foreground prose-strong:text-primary-foreground prose-headings:text-primary-foreground prose-li:text-primary-foreground [&_*]:text-primary-foreground'
               : 'prose-strong:text-foreground prose-headings:text-foreground'
           }`}>
             <ReactMarkdown>{message.content}</ReactMarkdown>
