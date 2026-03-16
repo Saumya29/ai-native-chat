@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useCallback, useEffect, useState } from 'react'
-import { CheckSquare, GitBranch, Link2, DollarSign, Zap, Check } from 'lucide-react'
+import { CheckSquare, GitBranch, Link2, DollarSign, Zap, Check, X } from 'lucide-react'
 import { type ContextItem } from '@/lib/types'
 
 const MIN_WIDTH = 220
@@ -12,6 +12,8 @@ interface ContextSidebarProps {
   items: ContextItem[]
   onToggleTask?: (index: number) => void
   onJumpToMessage?: (messageId: string) => void
+  onRemoveItem?: (index: number) => void
+  onClearAll?: () => void
   mobile?: boolean
 }
 
@@ -71,7 +73,7 @@ function parseBudgetAmount(text: string): number | null {
   return parseFloat(match[0].replace(/[$,]/g, ''))
 }
 
-export function ContextSidebar({ items, onToggleTask, onJumpToMessage, mobile }: ContextSidebarProps) {
+export function ContextSidebar({ items, onToggleTask, onJumpToMessage, onRemoveItem, onClearAll, mobile }: ContextSidebarProps) {
   const [width, setWidth] = useState(DEFAULT_WIDTH)
   const dragging = useRef(false)
   const startX = useRef(0)
@@ -141,9 +143,19 @@ export function ContextSidebar({ items, onToggleTask, onJumpToMessage, mobile }:
           </div>
           <h2 className="text-[13px] font-semibold text-foreground tracking-tight">Context Panel</h2>
           {hasItems && (
-            <span className="ml-auto text-[11px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-              {items.length}
-            </span>
+            <div className="ml-auto flex items-center gap-2">
+              <span className="text-[11px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                {items.length}
+              </span>
+              {onClearAll && (
+                <button
+                  onClick={onClearAll}
+                  className="text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Clear all
+                </button>
+              )}
+            </div>
           )}
         </div>
         <p className="text-[11.5px] text-muted-foreground leading-relaxed pl-8">
@@ -254,7 +266,7 @@ export function ContextSidebar({ items, onToggleTask, onJumpToMessage, mobile }:
                           <div className="flex-1 min-w-0">
                             {item.type === 'link' ? (
                               <a
-                                href={item.text.startsWith('http') ? item.text : `https://${item.text}`}
+                                href={item.text.startsWith('http') || item.text.startsWith('/') ? item.text : `https://${item.text}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-[12px] text-sky-600 underline underline-offset-2 break-all hover:text-sky-700 leading-relaxed"
@@ -271,6 +283,20 @@ export function ContextSidebar({ items, onToggleTask, onJumpToMessage, mobile }:
                               {relativeTime(item.addedAt)}
                             </span>
                           </div>
+
+                          {/* Dismiss button */}
+                          {onRemoveItem && (
+                            <button
+                              onClick={e => {
+                                e.stopPropagation()
+                                onRemoveItem(globalIdx)
+                              }}
+                              className="shrink-0 mt-0.5 opacity-0 group-hover:opacity-100 text-muted-foreground/50
+                                hover:text-foreground transition-opacity"
+                            >
+                              <X size={12} />
+                            </button>
+                          )}
                         </li>
                       )
                     })}

@@ -76,12 +76,12 @@ const SEED_MESSAGES: ChatMessage[] = [
   },
   {
     id: nextId(), role: 'user', userId: 'jordan',
-    content: "Great. On the product side, let's keep the MVP scope tight. Group chat with AI participant, context panel, and a shareable demo link. No auth, no persistence beyond the session for now. Ship fast, get feedback.\n\nHere's the Notion doc with the full spec: https://notion.so/mesh-mvp-spec",
+    content: "Great. On the product side, let's keep the MVP scope tight. Group chat with AI participant, context panel, and a shareable demo link. No auth, no persistence beyond the session for now. Ship fast, get feedback.\n\nHere's the full PRD: /prd",
     timestamp: t(25),
   },
   {
     id: nextId(), role: 'ai',
-    content: "Added that to the panel.\n\n**Task:** Marcus to set up CI/CD pipeline and staging environment by end of week.\n\n**Decision:** MVP scope is group chat with AI participant + context panel + shareable demo link. No auth or persistence in v1.\n\n**Link:** https://notion.so/mesh-mvp-spec\n\nYou're in good shape. Three decisions locked, three tasks assigned, infra budget set. Ready to build.",
+    content: "Added that to the panel.\n\n**Task:** Marcus to set up CI/CD pipeline and staging environment by end of week.\n\n**Decision:** MVP scope is group chat with AI participant + context panel + shareable demo link. No auth or persistence in v1.\n\n**Link:** PRD spec\n\nYou're in good shape. Three decisions locked, three tasks assigned, infra budget set. Ready to build.",
     timestamp: t(24),
   },
 ]
@@ -93,7 +93,7 @@ const SEED_CONTEXT: ContextItem[] = [
   { type: 'task',     text: 'Priya: deliver design system, component library, and Figma file by Friday.', status: 'open', addedAt: t(30) },
   { type: 'task',     text: 'Marcus: set up CI/CD pipeline and staging environment by end of week.', status: 'open', addedAt: t(24) },
   { type: 'budget',   text: '$4,000 estimated for infrastructure over the first 3 months.',                           addedAt: t(30) },
-  { type: 'link',     text: 'https://notion.so/mesh-mvp-spec',                                                        addedAt: t(24) },
+  { type: 'link',     text: '/prd',                                                        addedAt: t(24) },
 ]
 
 export function ChatApp() {
@@ -145,6 +145,14 @@ export function ChatApp() {
           : item
       )
     )
+  }, [])
+
+  const removeItem = useCallback((index: number) => {
+    setContextItems(prev => prev.filter((_, i) => i !== index))
+  }, [])
+
+  const clearAllItems = useCallback(() => {
+    setContextItems([])
   }, [])
 
   const scrollToMessage = useCallback((messageId: string) => {
@@ -630,6 +638,8 @@ export function ChatApp() {
               items={contextItems}
               onToggleTask={toggleTask}
               onJumpToMessage={scrollToMessage}
+              onRemoveItem={removeItem}
+              onClearAll={clearAllItems}
             />
           </div>
         )}
@@ -645,6 +655,8 @@ export function ChatApp() {
                   setMobileDrawer(false)
                   scrollToMessage(id)
                 }}
+                onRemoveItem={removeItem}
+                onClearAll={clearAllItems}
                 mobile
               />
             </div>

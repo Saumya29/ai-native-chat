@@ -44,21 +44,25 @@ export function DemoPlayer({
 
   const executeStep = useCallback(
     (step: DemoStep) => {
+      let msgId: string | undefined
+
       if (step.type === 'silent') {
         onSilent()
       } else if (step.type === 'reveal') {
         onReveal()
       } else if (step.type === 'user') {
+        msgId = nextId()
         onMessage({
-          id: nextId(),
+          id: msgId,
           role: 'user',
           userId: step.userId,
           content: step.content,
           timestamp: new Date(),
         })
       } else if (step.type === 'ai') {
+        msgId = nextId()
         onMessage({
-          id: nextId(),
+          id: msgId,
           role: 'ai',
           content: step.content,
           timestamp: new Date(),
@@ -70,6 +74,7 @@ export function DemoPlayer({
           step.contextItems.map(ci => ({
             ...ci,
             addedAt: new Date(),
+            messageId: msgId,
           }))
         )
       }
