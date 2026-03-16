@@ -52,9 +52,11 @@ export const DEFAULT_ROOM_SETTINGS: RoomSettings = {
 }
 
 export const DEMO_USERS: ChatUser[] = [
-  { id: 'jordan', name: 'Jordan',  initials: 'JK', color: 'bg-violet-500',  role: 'Product Manager' },
-  { id: 'marcus', name: 'Marcus',  initials: 'MR', color: 'bg-emerald-500', role: 'Engineering Lead' },
-  { id: 'priya',  name: 'Priya',   initials: 'PS', color: 'bg-rose-500',    role: 'Design Lead' },
+  { id: 'jordan',  name: 'Jordan',  initials: 'JK', color: 'bg-violet-500',  role: 'Product Manager' },
+  { id: 'marcus',  name: 'Marcus',  initials: 'MR', color: 'bg-emerald-500', role: 'Engineering Lead' },
+  { id: 'priya',   name: 'Priya',   initials: 'PS', color: 'bg-rose-500',    role: 'Design Lead' },
+  { id: 'herman',  name: 'Herman',  initials: 'HN', color: 'bg-amber-500',   role: 'CEO' },
+  { id: 'saumya',  name: 'Saumya',  initials: 'SA', color: 'bg-cyan-500',    role: 'Engineer' },
 ]
 
 export const AI_USER: ChatUser = {

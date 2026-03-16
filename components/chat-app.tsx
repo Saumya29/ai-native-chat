@@ -377,14 +377,14 @@ export function ChatApp() {
                 <circle cx="14" cy="14" r="3.5" fill="white" fillOpacity="0.25" />
               </svg>
             </div>
-            <span className="text-[13px] md:text-[14px] font-semibold tracking-tight text-foreground">mesh</span>
+            <span className="text-[14px] md:text-[14px] font-semibold tracking-tight text-foreground">mesh</span>
           </div>
 
           <span className="text-border select-none">/</span>
 
           <div className="flex items-center gap-1.5 md:gap-2 min-w-0">
-            <span className="text-[12px] md:text-[13px] font-medium text-foreground truncate">{roomName}</span>
-            <span className="shrink-0 text-[9px] md:text-[10px] font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full leading-none">
+            <span className="text-[13px] md:text-[14px] font-medium text-foreground truncate">{roomName}</span>
+            <span className="shrink-0 text-[9px] md:text-[11px] font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full leading-none">
               DEMO
             </span>
           </div>
@@ -418,7 +418,7 @@ export function ChatApp() {
 
             {/* "Mesh heard that" text */}
             {listeningFlash && (
-              <span className="text-[10px] text-primary font-medium animate-pulse whitespace-nowrap">
+              <span className="text-[11px] text-primary font-medium animate-pulse whitespace-nowrap">
                 Mesh heard that
               </span>
             )}
@@ -503,10 +503,10 @@ export function ChatApp() {
               <div className="rounded-xl border border-border bg-card shadow-sm px-4 py-3.5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
-                    <p className="text-[12px] font-semibold text-foreground mb-0.5">
+                    <p className="text-[13px] font-semibold text-foreground mb-0.5">
                       How to demo Mesh
                     </p>
-                    <p className="text-[11.5px] text-muted-foreground mb-3 leading-relaxed">
+                    <p className="text-[13px] text-muted-foreground mb-3 leading-relaxed">
                       The team has been planning their MVP. Continue the conversation below, or pick a prompt to see Mesh in action.
                     </p>
                     <div className="flex flex-wrap gap-2">
@@ -517,7 +517,7 @@ export function ChatApp() {
                             setBannerVisible(false)
                             sendMessage(prompt)
                           }}
-                          className="text-[11.5px] text-primary border border-primary/30 bg-primary/5
+                          className="text-[13px] text-primary border border-primary/30 bg-primary/5
                             hover:bg-primary/10 rounded-lg px-3 py-1.5 transition-colors leading-snug text-left"
                         >
                           {prompt}
@@ -559,10 +559,10 @@ export function ChatApp() {
                   {isFirstAgent && prevIsNotAgent && (
                     <div className="mt-5 mb-3 mx-auto max-w-sm animate-in fade-in slide-in-from-bottom-2 duration-500">
                       <div className="rounded-xl border border-dashed border-primary/25 bg-primary/5 px-4 py-2.5 text-center">
-                        <p className="text-[11px] font-semibold text-primary uppercase tracking-widest mb-0.5">
+                        <p className="text-[12px] font-semibold text-primary uppercase tracking-widest mb-0.5">
                           Agent-to-Agent
                         </p>
-                        <p className="text-[12px] text-muted-foreground leading-relaxed">
+                        <p className="text-[13px] text-muted-foreground leading-relaxed">
                           Personal AI agents negotiate on behalf of their humans.
                         </p>
                       </div>
@@ -602,43 +602,43 @@ export function ChatApp() {
             {showReveal && (
               <div className="mt-6 mx-auto max-w-md animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <div className="rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 px-6 py-5 shadow-lg text-center">
-                  <p className="text-[11px] font-semibold text-primary uppercase tracking-widest mb-2">
+                  <p className="text-[12px] font-semibold text-primary uppercase tracking-widest mb-2">
                     Plot twist
                   </p>
                   <p className="text-[18px] font-bold text-foreground mb-2">
                     Marcus was the AI the whole time.
                   </p>
-                  <p className="text-[13px] text-muted-foreground leading-relaxed mb-4">
+                  <p className="text-[14px] text-muted-foreground leading-relaxed mb-4">
                     Every message from &quot;Marcus&quot; was generated by Mesh. The unit economics,
                     the fatal flaw in flat pricing, the two-tier proposal, the LOI risk,
                     the A/B test suggestion. All AI. Could you tell?
                   </p>
                   <div className="text-left space-y-2 mb-4">
                     <div className="flex items-start gap-2">
-                      <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full leading-none mt-0.5 shrink-0">1</span>
-                      <p className="text-[12px] text-muted-foreground leading-relaxed">
+                      <span className="text-[11px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full leading-none mt-0.5 shrink-0">1</span>
+                      <p className="text-[13px] text-muted-foreground leading-relaxed">
                         <span className="font-semibold text-foreground">AI with taste.</span> Mesh contributed real analysis and stayed silent during banter.
                       </p>
                     </div>
                     <div className="flex items-start gap-2">
-                      <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full leading-none mt-0.5 shrink-0">2</span>
-                      <p className="text-[12px] text-muted-foreground leading-relaxed">
+                      <span className="text-[11px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full leading-none mt-0.5 shrink-0">2</span>
+                      <p className="text-[13px] text-muted-foreground leading-relaxed">
                         <span className="font-semibold text-foreground">Agent-to-agent.</span> Personal agents just negotiated a meeting time above.
                       </p>
                     </div>
                     <div className="flex items-start gap-2">
-                      <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full leading-none mt-0.5 shrink-0">3</span>
-                      <p className="text-[12px] text-muted-foreground leading-relaxed">
+                      <span className="text-[11px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full leading-none mt-0.5 shrink-0">3</span>
+                      <p className="text-[13px] text-muted-foreground leading-relaxed">
                         <span className="font-semibold text-foreground">Community intelligence.</span> The team shapes AI behavior through rules and feedback.
                       </p>
                     </div>
                   </div>
-                  <p className="text-[12px] text-muted-foreground leading-relaxed mb-3">
+                  <p className="text-[13px] text-muted-foreground leading-relaxed mb-3">
                     Send a message below to see Mesh respond. Then use the thumbs up/down to give feedback, or tap the gear icon to see the room rules the team set.
                   </p>
                   <button
                     onClick={() => setShowReveal(false)}
-                    className="text-[12px] font-medium text-primary hover:text-primary/80 transition-colors"
+                    className="text-[13px] font-medium text-primary hover:text-primary/80 transition-colors"
                   >
                     Dismiss
                   </button>
@@ -660,7 +660,7 @@ export function ChatApp() {
                 <div className={`w-5 h-5 rounded-full ${activeUser.color} flex items-center justify-center shrink-0`}>
                   <span className="text-[8px] font-bold text-white leading-none">{activeUser.initials}</span>
                 </div>
-                <span className="text-[11.5px] text-muted-foreground">
+                <span className="text-[13px] text-muted-foreground">
                   Chatting as <span className="font-semibold text-foreground">{activeUser.name}</span>
                   <span className="text-muted-foreground/60"> · {activeUser.role}</span>
                 </span>
@@ -675,13 +675,13 @@ export function ChatApp() {
                 onKeyDown={handleKeyDown}
                 placeholder="Type a message..."
                 disabled={demoActive}
-                className="w-full resize-none bg-transparent px-4 py-2 text-[13.5px] text-foreground
+                className="w-full resize-none bg-transparent px-4 py-2 text-[15px] text-foreground
                   placeholder:text-muted-foreground outline-none leading-relaxed disabled:opacity-50"
               />
 
               {/* Toolbar row */}
               <div className="flex items-center justify-between px-4 pb-3 pt-1 gap-2">
-                <p className="text-[11px] text-muted-foreground/70">
+                <p className="text-[12px] text-muted-foreground/70">
                   Enter to send &nbsp;·&nbsp; Shift+Enter for new line
                 </p>
                 <button

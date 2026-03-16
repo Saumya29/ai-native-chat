@@ -54,6 +54,12 @@ export const DEMO_SCRIPT: DemoStep[] = [
   },
   {
     type: 'user',
+    userId: 'herman',
+    content: "That concentration risk point is critical. We learned this the hard way at Improbable. One big client leaving can crater your quarter. We need a broad base.",
+    delay: 2400,
+  },
+  {
+    type: 'user',
     userId: 'jordan',
     content: "That concentration risk point is real. Hadn't framed it that way.",
     delay: 2000,
@@ -123,10 +129,27 @@ export const DEMO_SCRIPT: DemoStep[] = [
   },
   {
     type: 'user',
+    userId: 'saumya',
+    content:
+      "Quick eng flag: if we're gating on seat count, I need to build the enforcement logic and upgrade flow before launch. That's probably 3-4 days of work. Doable if we lock the tiers now.",
+    delay: 2400,
+    contextItems: [
+      { type: 'task', text: 'Saumya: build seat-count gating and upgrade flow (3-4 days).' },
+    ],
+  },
+  {
+    type: 'user',
     userId: 'priya',
     content:
       "The 10-seat cap on Starter is smart. Forces growing teams to upgrade naturally instead of hitting them with a price shock. And $19 kills the Notion/Linear comparison.",
     delay: 2800,
+  },
+  {
+    type: 'user',
+    userId: 'herman',
+    content:
+      "I like this structure. The Starter tier is your growth engine, Team is where margin lives. Just make sure the upgrade path feels like a natural next step, not a paywall.",
+    delay: 2600,
   },
   {
     type: 'user',
@@ -206,8 +229,14 @@ export const DEMO_SCRIPT: DemoStep[] = [
   },
   {
     type: 'agent',
+    agentFor: 'saumya',
+    content: "Saumya is free Thursday afternoon. 3:30pm works.",
+    delay: 1800,
+  },
+  {
+    type: 'agent',
     agentFor: 'jordan',
-    content: "Locked in. Pricing review Thursday 3:30pm. Calendar invites sent.",
+    content: "Locked in. Pricing review Thursday 3:30pm. Calendar invites sent to all five.",
     delay: 2000,
     contextItems: [
       { type: 'task', text: 'Pricing review: Thursday 3:30-4:30pm.' },

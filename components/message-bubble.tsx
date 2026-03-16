@@ -45,37 +45,41 @@ export function MessageBubble({ message, user, isOwn, grouped, highlighted, agen
         ref={ref}
         data-message-id={message.id}
         className={`
-          flex flex-col gap-1 ml-3 md:ml-11
-          ${grouped ? 'mt-1' : 'mt-3'}
+          flex items-stretch gap-0
+          ${grouped ? 'mt-0' : 'mt-3'}
           ${flash ? 'animate-pulse rounded-xl ring-2 ring-primary/30' : ''}
           transition-all duration-500
         `}
       >
-        {!grouped && (
-          <div className="flex items-center gap-2 px-0.5">
-            <div
-              title={`${agentForUser.name}'s Agent`}
-              className={`
-                w-5 h-5 rounded-full ${agentForUser.color} opacity-60
-                flex items-center justify-center shrink-0
-              `}
-            >
-              <span className="text-[7px] font-bold text-white leading-none tracking-tight">
-                {agentForUser.initials}
+        {/* Colored accent bar */}
+        <div className={`w-0.5 shrink-0 rounded-full ${agentForUser.color} opacity-40 ${grouped ? '' : 'mt-1'}`} />
+
+        <div className="flex flex-col gap-0.5 pl-3 py-1">
+          {!grouped && (
+            <div className="flex items-center gap-2">
+              <div
+                title={`${agentForUser.name}'s Agent`}
+                className={`
+                  w-4 h-4 rounded-full ${agentForUser.color} opacity-60
+                  flex items-center justify-center shrink-0
+                `}
+              >
+                <span className="text-[6px] font-bold text-white leading-none">
+                  {agentForUser.initials}
+                </span>
+              </div>
+              <span className="text-[12px] font-semibold leading-none text-muted-foreground">
+                {agentForUser.name}&apos;s Agent
+              </span>
+              <span className="text-[9px] font-semibold bg-primary/10 text-primary px-1.5 py-0.5 rounded-full leading-none">
+                AGENT
               </span>
             </div>
-            <span className="text-[12px] font-semibold leading-none text-muted-foreground">
-              {agentForUser.name}&apos;s Agent
-            </span>
-            <span className="text-[9px] font-semibold bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full leading-none">
-              AGENT
-            </span>
-            <span className="text-[10px] text-muted-foreground/60 leading-none">{time}</span>
-          </div>
-        )}
+          )}
 
-        <div className="px-3 py-2 text-[13px] leading-relaxed break-words rounded-xl rounded-bl-sm bg-muted/50 border border-dashed border-border text-foreground max-w-[85%] md:max-w-[65%]">
-          <span className="whitespace-pre-wrap">{message.content}</span>
+          <p className="text-[14px] leading-relaxed text-muted-foreground break-words max-w-[90%] md:max-w-[70%]">
+            {message.content}
+          </p>
         </div>
       </div>
     )
@@ -103,7 +107,7 @@ export function MessageBubble({ message, user, isOwn, grouped, highlighted, agen
             shadow-sm
           `}
         >
-          <span className="text-[10px] font-bold text-white leading-none tracking-tight">
+          <span className="text-[11px] font-bold text-white leading-none tracking-tight">
             {user.initials}
           </span>
         </div>
@@ -115,24 +119,24 @@ export function MessageBubble({ message, user, isOwn, grouped, highlighted, agen
       <div className={`flex flex-col gap-1 max-w-[70%] ${isOwn ? 'items-end' : 'items-start'}`}>
         {!grouped && (
           <div className={`flex items-baseline gap-2 px-0.5 ${isOwn ? 'flex-row-reverse' : ''}`}>
-            <span className={`text-[13px] font-semibold leading-none ${isAI ? 'text-primary' : 'text-foreground'}`}>
+            <span className={`text-[14px] font-semibold leading-none ${isAI ? 'text-primary' : 'text-foreground'}`}>
               {isAI ? 'Mesh' : user.name}
             </span>
             {isAI && (
-              <span className="text-[10px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded-full leading-none">
+              <span className="text-[11px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded-full leading-none">
                 AI
               </span>
             )}
             {!isAI && (
-              <span className="text-[11px] text-muted-foreground leading-none">{user.role}</span>
+              <span className="text-[12px] text-muted-foreground leading-none">{user.role}</span>
             )}
-            <span className="text-[11px] text-muted-foreground/60 leading-none">{time}</span>
+            <span className="text-[12px] text-muted-foreground/60 leading-none font-mono">{time}</span>
           </div>
         )}
 
         <div
           className={`
-            px-4 py-3 text-[13.5px] leading-relaxed break-words
+            px-4 py-3 text-[15px] leading-relaxed break-words
             ${isAI
               ? 'rounded-2xl rounded-bl-sm bg-card border border-primary/15 text-foreground shadow-sm'
               : isOwn
@@ -141,13 +145,15 @@ export function MessageBubble({ message, user, isOwn, grouped, highlighted, agen
             }
           `}
         >
-          {isAI ? (
-            <div className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-strong:text-foreground prose-headings:text-foreground prose-headings:text-sm prose-headings:mt-2 prose-headings:mb-1 [&>p:first-child]:mt-0 [&>p:last-child]:mb-0">
-              <ReactMarkdown>{message.content}</ReactMarkdown>
-            </div>
-          ) : (
-            <span className="whitespace-pre-wrap">{message.content}</span>
-          )}
+          <div className={`prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:text-sm prose-headings:mt-2 prose-headings:mb-1 [&>p:first-child]:mt-0 [&>p:last-child]:mb-0 ${
+            isAI
+              ? 'prose-strong:text-foreground prose-headings:text-foreground'
+              : isOwn
+              ? 'prose-strong:text-primary-foreground prose-headings:text-primary-foreground text-primary-foreground'
+              : 'prose-strong:text-foreground prose-headings:text-foreground'
+          }`}>
+            <ReactMarkdown>{message.content}</ReactMarkdown>
+          </div>
         </div>
 
         {/* Feedback buttons for AI messages */}
@@ -209,7 +215,7 @@ export function MessageBubble({ message, user, isOwn, grouped, highlighted, agen
               }}
               placeholder="What should change?"
               autoFocus
-              className="text-[12px] px-2 py-1 rounded-lg border border-border bg-card text-foreground
+              className="text-[13px] px-2 py-1 rounded-lg border border-border bg-card text-foreground
                 placeholder:text-muted-foreground outline-none focus:border-ring focus:ring-1 focus:ring-ring/20
                 w-56 transition-all"
             />

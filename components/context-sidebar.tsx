@@ -141,16 +141,16 @@ export function ContextSidebar({ items, onToggleTask, onJumpToMessage, onRemoveI
           <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
             <Zap size={12} className="text-primary" />
           </div>
-          <h2 className="text-[13px] font-semibold text-foreground tracking-tight">Context Panel</h2>
+          <h2 className="text-[14px] font-semibold text-foreground tracking-tight">Context Panel</h2>
           {hasItems && (
             <div className="ml-auto flex items-center gap-2">
-              <span className="text-[11px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+              <span className="text-[12px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
                 {items.length}
               </span>
               {onClearAll && (
                 <button
                   onClick={onClearAll}
-                  className="text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Clear all
                 </button>
@@ -158,7 +158,7 @@ export function ContextSidebar({ items, onToggleTask, onJumpToMessage, onRemoveI
             </div>
           )}
         </div>
-        <p className="text-[11.5px] text-muted-foreground leading-relaxed pl-8">
+        <p className="text-[13px] text-muted-foreground leading-relaxed pl-8">
           Mesh extracts key info from the conversation automatically.
         </p>
       </div>
@@ -168,7 +168,7 @@ export function ContextSidebar({ items, onToggleTask, onJumpToMessage, onRemoveI
 
         {!hasItems ? (
           <div className="py-4">
-            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+            <p className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
               Try saying something like...
             </p>
             <ul className="space-y-2">
@@ -179,12 +179,12 @@ export function ContextSidebar({ items, onToggleTask, onJumpToMessage, onRemoveI
                     <div className={`mt-0.5 w-5 h-5 rounded-md flex items-center justify-center shrink-0 ${pill}`}>
                       <Icon size={11} />
                     </div>
-                    <p className="text-[11.5px] text-muted-foreground leading-relaxed">{text}</p>
+                    <p className="text-[13px] text-muted-foreground leading-relaxed">{text}</p>
                   </li>
                 )
               })}
             </ul>
-            <p className="text-[11px] text-muted-foreground mt-4 leading-relaxed">
+            <p className="text-[12px] text-muted-foreground mt-4 leading-relaxed">
               Items will appear here as the conversation unfolds.
             </p>
           </div>
@@ -196,12 +196,12 @@ export function ContextSidebar({ items, onToggleTask, onJumpToMessage, onRemoveI
               <div className="rounded-lg bg-amber-50 border border-amber-200/60 px-3 py-2.5">
                 <div className="flex items-center gap-2 mb-1">
                   <DollarSign size={12} className="text-amber-600" />
-                  <span className="text-[11px] font-semibold text-amber-800">Budget Summary</span>
+                  <span className="text-[12px] font-semibold text-amber-800">Budget Summary</span>
                 </div>
-                <p className="text-[18px] font-bold text-amber-900 tracking-tight">
+                <p className="text-[18px] font-bold text-amber-900 tracking-tight font-mono">
                   ${budgetTotal.toLocaleString()}
                 </p>
-                <p className="text-[10px] text-amber-700">
+                <p className="text-[11px] text-amber-700">
                   across {budgetItems.length} item{budgetItems.length !== 1 ? 's' : ''}
                 </p>
               </div>
@@ -218,13 +218,13 @@ export function ContextSidebar({ items, onToggleTask, onJumpToMessage, onRemoveI
                     <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 ${pill}`}>
                       <Icon size={11} />
                     </div>
-                    <span className="text-[12px] font-semibold text-foreground">{label}</span>
+                    <span className="text-[13px] font-semibold text-foreground">{label}</span>
                     {type === 'task' && totalTasks > 0 ? (
-                      <span className="ml-auto text-[10px] font-medium text-muted-foreground bg-muted rounded-full px-1.5 py-0.5">
+                      <span className="ml-auto text-[11px] font-medium font-mono text-muted-foreground bg-muted rounded-full px-1.5 py-0.5">
                         {doneTasks}/{totalTasks}
                       </span>
                     ) : (
-                      <span className="ml-auto text-[10px] font-medium text-muted-foreground bg-muted rounded-full px-1.5 py-0.5">
+                      <span className="ml-auto text-[11px] font-medium font-mono text-muted-foreground bg-muted rounded-full px-1.5 py-0.5">
                         {sectionItems.length}
                       </span>
                     )}
@@ -239,7 +239,7 @@ export function ContextSidebar({ items, onToggleTask, onJumpToMessage, onRemoveI
                       return (
                         <li
                           key={idx}
-                          className={`group flex items-start gap-2.5 rounded-lg bg-card border border-border px-3 py-2.5
+                          className={`group flex items-start gap-3 rounded-lg bg-card border border-border px-3 py-2.5
                             ${item.messageId && onJumpToMessage ? 'cursor-pointer hover:border-primary/30 hover:bg-primary/5' : ''}
                             transition-colors`}
                           onClick={() => item.messageId && onJumpToMessage?.(item.messageId)}
@@ -251,7 +251,7 @@ export function ContextSidebar({ items, onToggleTask, onJumpToMessage, onRemoveI
                                 e.stopPropagation()
                                 onToggleTask(globalIdx)
                               }}
-                              className={`mt-0.5 w-4 h-4 rounded border shrink-0 flex items-center justify-center transition-colors
+                              className={`mt-1.5 w-5 h-5 rounded border shrink-0 flex items-center justify-center transition-colors
                                 ${isDone
                                   ? 'bg-emerald-500 border-emerald-500 text-white'
                                   : 'border-border hover:border-emerald-400'
@@ -260,7 +260,7 @@ export function ContextSidebar({ items, onToggleTask, onJumpToMessage, onRemoveI
                               {isDone && <Check size={10} />}
                             </button>
                           ) : (
-                            <div className={`mt-1.5 w-1.5 h-1.5 rounded-full shrink-0 ${bar}`} />
+                            <div className={`mt-2 w-2 h-2 rounded-full shrink-0 ${bar}`} />
                           )}
 
                           <div className="flex-1 min-w-0">
@@ -269,17 +269,17 @@ export function ContextSidebar({ items, onToggleTask, onJumpToMessage, onRemoveI
                                 href={item.text.startsWith('http') || item.text.startsWith('/') ? item.text : `https://${item.text}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-[12px] text-sky-600 underline underline-offset-2 break-all hover:text-sky-700 leading-relaxed"
+                                className="text-[13px] text-sky-600 underline underline-offset-2 break-all hover:text-sky-700 leading-relaxed"
                                 onClick={e => e.stopPropagation()}
                               >
                                 {item.text}
                               </a>
                             ) : (
-                              <span className={`text-[12px] leading-relaxed ${isDone ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                              <span className={`text-[13px] leading-relaxed ${isDone ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                                 {item.text}
                               </span>
                             )}
-                            <span className="block text-[10px] text-muted-foreground/60 mt-0.5">
+                            <span className="block text-[11px] text-muted-foreground/60 mt-0.5">
                               {relativeTime(item.addedAt)}
                             </span>
                           </div>
@@ -311,7 +311,7 @@ export function ContextSidebar({ items, onToggleTask, onJumpToMessage, onRemoveI
       {/* Footer */}
       {hasItems && (
         <div className="px-5 py-3 border-t border-border">
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-[12px] text-muted-foreground">
             {items.length} item{items.length !== 1 ? 's' : ''} captured this session
           </p>
         </div>
