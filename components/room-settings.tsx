@@ -160,6 +160,61 @@ export function RoomSettingsPanel({ settings, onChange }: RoomSettingsProps) {
               ))}
             </div>
           </div>
+
+          {/* Room Rules */}
+          <div>
+            <label className="text-[12px] font-semibold text-foreground mb-2 block">
+              Room Rules
+            </label>
+            <textarea
+              value={settings.roomRules}
+              onChange={e => update('roomRules', e.target.value)}
+              rows={3}
+              className="w-full rounded-lg border border-border bg-card px-3 py-2 text-[13px]
+                text-foreground outline-none focus:border-ring focus:ring-2 focus:ring-ring/20
+                transition-all resize-none"
+              placeholder={"Natural language rules. One per line.\ne.g., Always include unit economics when discussing pricing"}
+            />
+            <p className="text-[11px] text-muted-foreground mt-1.5">
+              The AI will follow these rules in every response.
+            </p>
+          </div>
+
+          {/* Learned Preferences */}
+          <div>
+            <label className="text-[12px] font-semibold text-foreground mb-2 block">
+              Learned Preferences
+            </label>
+            {settings.learnedPreferences.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {settings.learnedPreferences.map((pref, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-1.5 text-[11.5px] bg-muted text-foreground
+                      px-2.5 py-1 rounded-full border border-border"
+                  >
+                    <span className="max-w-[200px] truncate">{pref}</span>
+                    <button
+                      onClick={() => {
+                        onChange({
+                          ...settings,
+                          learnedPreferences: settings.learnedPreferences.filter((_, idx) => idx !== i),
+                        })
+                      }}
+                      className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                      aria-label="Remove preference"
+                    >
+                      <X size={10} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[11.5px] text-muted-foreground/70 italic">
+                No feedback yet. Use thumbs up/down on AI messages.
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="px-5 py-3 border-t border-border">

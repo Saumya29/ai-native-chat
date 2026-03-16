@@ -6,7 +6,7 @@ import { type ContextItem } from '@/lib/types'
 
 const MIN_WIDTH = 220
 const MAX_WIDTH = 520
-const DEFAULT_WIDTH = 268
+const DEFAULT_WIDTH = 400
 
 interface ContextSidebarProps {
   items: ContextItem[]

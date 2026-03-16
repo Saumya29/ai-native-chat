@@ -111,6 +111,7 @@ export function ChatApp() {
   const [roomName,        setRoomName]        = useState('Product Sprint')
   const [showReveal,      setShowReveal]      = useState(false)
   const [mobileDrawer,    setMobileDrawer]    = useState(false)
+  const [feedback,        setFeedback]        = useState<Map<string, 'up' | 'down'>>(new Map())
   const { theme, setTheme } = useTheme()
 
   const bottomRef  = useRef<HTMLDivElement>(null)
@@ -162,6 +163,25 @@ export function ChatApp() {
     setTimeout(() => setHighlightedMsg(null), 2500)
   }, [])
 
+  const handleFeedback = useCallback((messageId: string, type: 'up' | 'down', note?: string) => {
+    setFeedback(prev => new Map(prev).set(messageId, type))
+    if (type === 'up') {
+      const msg = messages.find(m => m.id === messageId)
+      if (msg) {
+        const snippet = msg.content.slice(0, 80)
+        setRoomSettings(prev => ({
+          ...prev,
+          learnedPreferences: [...prev.learnedPreferences, `More like: ${snippet}`],
+        }))
+      }
+    } else if (type === 'down' && note) {
+      setRoomSettings(prev => ({
+        ...prev,
+        learnedPreferences: [...prev.learnedPreferences, `Avoid: ${note}`],
+      }))
+    }
+  }, [messages])
+
   async function sendMessage(overrideText?: string) {
     const text = (overrideText ?? input).trim()
     if (!text || loading) return
@@ -182,13 +202,15 @@ export function ChatApp() {
     setLoading(true)
 
     try {
-      const history = [...messages, userMsg].map(m => ({
-        role:    m.role === 'ai' ? 'assistant' : 'user',
-        content:
-          m.role === 'user'
-            ? `[${DEMO_USERS.find(u => u.id === m.userId)?.name ?? 'User'}]: ${m.content}`
-            : m.content,
-      }))
+      const history = [...messages, userMsg]
+        .filter(m => m.role !== 'agent')
+        .map(m => ({
+          role:    m.role === 'ai' ? 'assistant' : 'user',
+          content:
+            m.role === 'user'
+              ? `[${DEMO_USERS.find(u => u.id === m.userId)?.name ?? 'User'}]: ${m.content}`
+              : m.content,
+        }))
 
       const res = await fetch('/api/chat', {
         method:  'POST',
@@ -306,6 +328,10 @@ export function ChatApp() {
     setContextItems([])
     setRoomName('Launch Pricing')
     setBannerVisible(false)
+    setRoomSettings(prev => ({
+      ...prev,
+      roomRules: 'Always include unit economics when discussing pricing.\nNever suggest budget cuts without presenting alternatives.',
+    }))
   }, [])
 
   const handleDemoEnd = useCallback(() => {
@@ -514,23 +540,45 @@ export function ChatApp() {
           {/* Messages */}
           <div ref={messagesRef} className="flex-1 overflow-y-auto px-5 pt-3 pb-2">
             {messages.map((msg, i) => {
-              const user    = msg.role === 'ai' ? AI_USER : DEMO_USERS.find(u => u.id === msg.userId)!
+              const agentForUser = msg.role === 'agent' ? DEMO_USERS.find(u => u.id === msg.agentFor) : undefined
+              const user    = msg.role === 'ai' ? AI_USER : msg.role === 'agent' ? (agentForUser ?? AI_USER) : DEMO_USERS.find(u => u.id === msg.userId)!
               const prevMsg = messages[i - 1]
               const grouped =
                 !!prevMsg &&
                 prevMsg.role === msg.role &&
                 prevMsg.userId === msg.userId &&
+                msg.role !== 'agent' &&
                 new Date(msg.timestamp).getTime() - new Date(prevMsg.timestamp).getTime() < 90_000
 
+              // Show callout before the first agent message
+              const isFirstAgent = msg.role === 'agent' && (!prevMsg || prevMsg.role !== 'agent')
+              const prevIsNotAgent = !prevMsg || prevMsg.role !== 'agent'
+
               return (
-                <MessageBubble
-                  key={msg.id}
-                  message={msg}
-                  user={user}
-                  isOwn={msg.role === 'user' && msg.userId === activeUser.id}
-                  grouped={grouped}
-                  highlighted={highlightedMsg === msg.id}
-                />
+                <div key={msg.id}>
+                  {isFirstAgent && prevIsNotAgent && (
+                    <div className="mt-5 mb-3 mx-auto max-w-sm animate-in fade-in slide-in-from-bottom-2 duration-500">
+                      <div className="rounded-xl border border-dashed border-primary/25 bg-primary/5 px-4 py-2.5 text-center">
+                        <p className="text-[11px] font-semibold text-primary uppercase tracking-widest mb-0.5">
+                          Agent-to-Agent
+                        </p>
+                        <p className="text-[12px] text-muted-foreground leading-relaxed">
+                          Personal AI agents negotiate on behalf of their humans.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  <MessageBubble
+                    message={msg}
+                    user={user}
+                    isOwn={msg.role === 'user' && msg.userId === activeUser.id}
+                    grouped={grouped}
+                    highlighted={highlightedMsg === msg.id}
+                    agentForUser={agentForUser}
+                    onFeedback={msg.role === 'ai' ? handleFeedback : undefined}
+                    feedback={feedback.get(msg.id)}
+                  />
+                </div>
               )
             })}
 
@@ -561,17 +609,36 @@ export function ChatApp() {
                     Marcus was the AI the whole time.
                   </p>
                   <p className="text-[13px] text-muted-foreground leading-relaxed mb-4">
-                    Every message from "Marcus" was generated by Mesh. The unit economics,
+                    Every message from &quot;Marcus&quot; was generated by Mesh. The unit economics,
                     the fatal flaw in flat pricing, the two-tier proposal, the LOI risk,
                     the A/B test suggestion. All AI. Could you tell?
                   </p>
-                  <p className="text-[12px] text-muted-foreground/70">
-                    This is what AI-native collaboration looks like. Not a chatbot in a sidebar.
-                    A teammate who does real work.
+                  <div className="text-left space-y-2 mb-4">
+                    <div className="flex items-start gap-2">
+                      <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full leading-none mt-0.5 shrink-0">1</span>
+                      <p className="text-[12px] text-muted-foreground leading-relaxed">
+                        <span className="font-semibold text-foreground">AI with taste.</span> Mesh contributed real analysis and stayed silent during banter.
+                      </p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full leading-none mt-0.5 shrink-0">2</span>
+                      <p className="text-[12px] text-muted-foreground leading-relaxed">
+                        <span className="font-semibold text-foreground">Agent-to-agent.</span> Personal agents just negotiated a meeting time above.
+                      </p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full leading-none mt-0.5 shrink-0">3</span>
+                      <p className="text-[12px] text-muted-foreground leading-relaxed">
+                        <span className="font-semibold text-foreground">Community intelligence.</span> The team shapes AI behavior through rules and feedback.
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-[12px] text-muted-foreground leading-relaxed mb-3">
+                    Send a message below to see Mesh respond. Then use the thumbs up/down to give feedback, or tap the gear icon to see the room rules the team set.
                   </p>
                   <button
                     onClick={() => setShowReveal(false)}
-                    className="mt-4 text-[12px] font-medium text-primary hover:text-primary/80 transition-colors"
+                    className="text-[12px] font-medium text-primary hover:text-primary/80 transition-colors"
                   >
                     Dismiss
                   </button>

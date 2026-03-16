@@ -67,6 +67,15 @@ export function DemoPlayer({
           content: step.content,
           timestamp: new Date(),
         })
+      } else if (step.type === 'agent') {
+        msgId = nextId()
+        onMessage({
+          id: msgId,
+          role: 'agent',
+          agentFor: step.agentFor,
+          content: step.content,
+          timestamp: new Date(),
+        })
       }
 
       if (step.contextItems?.length) {

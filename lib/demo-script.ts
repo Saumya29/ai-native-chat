@@ -1,6 +1,7 @@
 export interface DemoStep {
-  type: 'user' | 'ai' | 'silent' | 'reveal'
+  type: 'user' | 'ai' | 'agent' | 'silent' | 'reveal'
   userId?: string
+  agentFor?: string // userId of the human this agent represents
   content: string
   delay: number // ms before this message appears
   contextItems?: { type: 'decision' | 'task' | 'link' | 'budget'; text: string }[]
@@ -182,6 +183,35 @@ export const DEMO_SCRIPT: DemoStep[] = [
     type: 'silent', // Wrap-up, nothing to add
     content: '',
     delay: 1500,
+  },
+
+  // ── Act 7: Agent-to-Agent Scheduling ──
+  {
+    type: 'user',
+    userId: 'jordan',
+    content: "Let's schedule the pricing review for Thursday to finalize everything before launch.",
+    delay: 2500,
+  },
+  {
+    type: 'agent',
+    agentFor: 'jordan',
+    content: "Checking Jordan's calendar... Thursday 2-4pm is open.",
+    delay: 2000,
+  },
+  {
+    type: 'agent',
+    agentFor: 'priya',
+    content: "Priya has a design review at 2pm. 3:30-4:30pm works.",
+    delay: 2200,
+  },
+  {
+    type: 'agent',
+    agentFor: 'jordan',
+    content: "Locked in. Pricing review Thursday 3:30pm. Calendar invites sent.",
+    delay: 2000,
+    contextItems: [
+      { type: 'task', text: 'Pricing review: Thursday 3:30-4:30pm.' },
+    ],
   },
 
   // ── The Reveal ──

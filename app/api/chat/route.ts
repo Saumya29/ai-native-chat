@@ -59,7 +59,7 @@ function buildSystemPrompt(settings: RoomSettings): string {
   if (settings.capabilities.suggestActions)
     capabilities.push('- Proactively suggest next actions and improvements')
 
-  return `You are ${name}, an AI collaborator in a group chat. You are part of the team, not a bot widget.
+  let prompt = `You are ${name}, an AI collaborator in a group chat. You are part of the team, not a bot widget.
 
 Your personality:
 - ${personalityMap[settings.personality]}
@@ -84,6 +84,16 @@ Context extraction rules (only extract concrete, stated things, not hypothetical
 - "link": a URL shared in the chat
 - "budget": a monetary figure or budget constraint (e.g. "Q2 budget is $12,000")
 - Return null for contextItems if nothing new to extract.`
+
+  if (settings.roomRules?.trim()) {
+    prompt += `\n\nRoom Rules (set by the team, you MUST follow these):\n${settings.roomRules.trim()}`
+  }
+
+  if (settings.learnedPreferences?.length) {
+    prompt += `\n\nLearned Preferences (from team feedback):\n${settings.learnedPreferences.map(p => `- ${p}`).join('\n')}`
+  }
+
+  return prompt
 }
 
 function buildResponsePrompt(settings: RoomSettings): string {
@@ -94,7 +104,7 @@ function buildResponsePrompt(settings: RoomSettings): string {
     minimal: 'Extremely concise. One-sentence answers when possible. No pleasantries.',
   }
 
-  return `You are ${name}, an AI collaborator in a group chat. You are part of the team, not a bot widget.
+  let prompt = `You are ${name}, an AI collaborator in a group chat. You are part of the team, not a bot widget.
 
 Your personality:
 - ${personalityMap[settings.personality]}
@@ -103,6 +113,16 @@ Your personality:
 - Do not use em-dashes. Use periods, commas, or colons instead.
 
 Respond naturally to the conversation. You can use markdown for formatting (bold, lists, etc).`
+
+  if (settings.roomRules?.trim()) {
+    prompt += `\n\nRoom Rules (set by the team, you MUST follow these):\n${settings.roomRules.trim()}`
+  }
+
+  if (settings.learnedPreferences?.length) {
+    prompt += `\n\nLearned Preferences (from team feedback):\n${settings.learnedPreferences.map(p => `- ${p}`).join('\n')}`
+  }
+
+  return prompt
 }
 
 export async function POST(req: Request) {

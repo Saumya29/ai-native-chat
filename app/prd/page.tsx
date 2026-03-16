@@ -119,6 +119,27 @@ export default function PRDPage() {
                 <li>Custom AI name</li>
               </ul>
             </Subsection>
+
+            <Subsection title="6. Agent-to-agent messaging">
+              <ul className="list-disc pl-5 space-y-1.5">
+                <li>Each user has a personal AI agent that can act on their behalf</li>
+                <li>When coordination is needed (scheduling, logistics), agents negotiate visibly in the chat</li>
+                <li>Agent messages are visually distinct: indented, dashed borders, smaller avatars, &quot;AGENT&quot; pill</li>
+                <li>Agents reference the human they represent (e.g., &quot;Jordan&apos;s Agent&quot;)</li>
+                <li>Demo includes a scheduling negotiation where two agents coordinate a meeting</li>
+              </ul>
+            </Subsection>
+
+            <Subsection title="7. Community-owned intelligence">
+              <ul className="list-disc pl-5 space-y-1.5">
+                <li>Room rules: natural language instructions the AI must follow in every response</li>
+                <li>Thumbs up/down feedback on AI messages (visible on hover)</li>
+                <li>Thumbs down prompts for a reason, which becomes a learned preference</li>
+                <li>Thumbs up captures the message style as a positive signal</li>
+                <li>Learned preferences shown as dismissible pills in settings</li>
+                <li>Both room rules and learned preferences are injected into the AI system prompt</li>
+              </ul>
+            </Subsection>
           </Section>
 
           <hr className="border-border" />

@@ -8,8 +8,9 @@ export interface ChatUser {
 
 export interface ChatMessage {
   id: string
-  role: 'user' | 'ai'
+  role: 'user' | 'ai' | 'agent'
   userId?: string
+  agentFor?: string // userId of the human this agent represents
   content: string
   timestamp: Date
 }
@@ -32,6 +33,8 @@ export interface RoomSettings {
     answerQuestions: boolean
     suggestActions: boolean
   }
+  roomRules: string
+  learnedPreferences: string[]
 }
 
 export const DEFAULT_ROOM_SETTINGS: RoomSettings = {
@@ -44,6 +47,8 @@ export const DEFAULT_ROOM_SETTINGS: RoomSettings = {
     answerQuestions: true,
     suggestActions: false,
   },
+  roomRules: '',
+  learnedPreferences: [],
 }
 
 export const DEMO_USERS: ChatUser[] = [
