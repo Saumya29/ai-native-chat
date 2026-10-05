@@ -12,6 +12,7 @@ interface DemoPlayerProps {
   onReveal: () => void
   onStart: () => void
   onEnd: () => void
+  disabled?: boolean
   isActive: boolean
   nextId: () => string
 }
@@ -24,6 +25,7 @@ export function DemoPlayer({
   onStart,
   onEnd,
   isActive,
+  disabled = false,
   nextId,
 }: DemoPlayerProps) {
   const [stepIndex, setStepIndex] = useState(0)
@@ -153,6 +155,7 @@ export function DemoPlayer({
     return (
       <button
         onClick={start}
+        disabled={disabled}
         className="flex items-center gap-2 text-[11.5px] font-medium text-primary border border-primary/30
           bg-primary/5 hover:bg-primary/10 rounded-lg px-3 py-1.5 transition-colors"
       >

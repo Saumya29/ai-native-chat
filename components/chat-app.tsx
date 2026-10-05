@@ -449,6 +449,7 @@ export function ChatApp() {
               onStart={handleDemoStart}
               onEnd={handleDemoEnd}
               isActive={demoActive}
+              disabled={loading}
               nextId={nextId}
             />
           </div>

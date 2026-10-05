@@ -28,6 +28,8 @@ Mesh is a prototype for a new kind of group messaging. Instead of bolting AI ont
 
 ## Running locally
 
+Use Node.js 22 or newer. Run `pnpm test` for streaming completion and failure tests.
+
 ```bash
 pnpm install
 cp .env.example .env.local  # add your OPENAI_API_KEY
