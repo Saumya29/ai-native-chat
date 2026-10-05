@@ -6,14 +6,14 @@ AI-native group chat where the AI is a teammate, not a sidebar widget.
 
 Mesh is a prototype for a new kind of group messaging. Instead of bolting AI onto chat as a `/slash command` or a separate panel, the AI sits inside the conversation as a full participant. It listens, contributes when useful, stays silent when it has nothing to add, and quietly extracts structure (decisions, tasks, budget, links) from the natural flow of conversation.
 
-Built as a co-founder audition demo.
+[Try Mesh](https://chat.saumyat.com). This is a public, single-browser prototype. The initial conversation and Watch Demo are scripted examples; messages you send use live AI. There is no authentication, shared room backend, or persistence beyond the current session.
 
 ## Key features
 
 - **"When to speak" logic**: The AI decides whether to respond or stay silent. Not every message gets a reply. A lightweight classifier determines relevance before generating a response.
 - **Streaming responses**: AI messages appear token-by-token via SSE. Fast decision call (gpt-4o-mini) followed by streamed response (gpt-4o).
 - **Live context panel**: Decisions, tasks, budget items, and links are extracted automatically and shown in a resizable sidebar. Tasks have checkboxes. Items link back to the source message.
-- **Guided demo with reveal**: A "Watch Demo" auto-plays a realistic group conversation (Bali trip planning). The twist: one of the "human" participants was the AI the whole time.
+- **Guided demo with reveal**: A "Watch Demo" auto-plays a realistic group conversation (AI behavior design). The twist: one of the "human" participants was the AI the whole time.
 - **Room settings**: Per-room AI personality (professional/casual/minimal), activity level slider, and capability toggles.
 - **Dark mode**: Toggle between light and dark themes. Indigo primary preserved across both.
 - **Mobile-responsive**: Context panel becomes a bottom drawer on small screens. Header adapts to available space.
@@ -34,7 +34,7 @@ cp .env.example .env.local  # add your OPENAI_API_KEY
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Demo password is `mesh2026`.
+Open [http://localhost:3000](http://localhost:3000). No password is required. Watch Demo works without an API key; live replies require one.
 
 ## Project structure
 
@@ -49,7 +49,6 @@ components/
   context-sidebar.tsx   # resizable context panel with drag handle
   demo-player.tsx       # auto-play demo controls
   room-settings.tsx     # AI configuration sheet
-  password-gate.tsx     # demo auth gate
 lib/
   types.ts              # shared interfaces + constants
   demo-script.ts        # scripted demo conversation data

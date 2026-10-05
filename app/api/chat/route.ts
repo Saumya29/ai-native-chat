@@ -1,6 +1,7 @@
 import { generateObject, streamText } from 'ai'
 import { createOpenAI } from '@ai-sdk/openai'
 import { z } from 'zod'
+import { createChatStream } from '@/lib/chat-stream'
 import { type RoomSettings, DEFAULT_ROOM_SETTINGS } from '@/lib/types'
 
 export const runtime = 'nodejs'
@@ -76,9 +77,9 @@ ${capabilities.join('\n')}
 IMPORTANT: You MUST decide whether to respond or stay silent based on the above guidance.
 - Set shouldRespond=true when the message warrants a response
 - Set shouldRespond=false when you should stay silent
-- ALWAYS extract contextItems regardless of whether you respond. Capture decisions, tasks, links, and budget items even when silent
+${settings.capabilities.extractDecisions ? '- Extract contextItems even when staying silent.' : '- Context extraction is disabled. Return null for contextItems.'}
 
-Context extraction rules (only extract concrete, stated things, not hypotheticals):
+Context extraction rules (only extract concrete facts in the latest user message; use history to interpret them, not to extract old facts again):
 - "decision": a choice the group has made (e.g. "We're going with Next.js")
 - "task": something to do with an owner if mentioned (e.g. "Marcus will set up CI/CD")
 - "link": a URL shared in the chat
@@ -129,7 +130,29 @@ export async function POST(req: Request) {
   try {
     const body = await req.json()
     const { messages, settings: rawSettings } = body
-    const settings: RoomSettings = { ...DEFAULT_ROOM_SETTINGS, ...rawSettings }
+    if (!Array.isArray(messages) || !messages.length || messages.length > 200 ||
+        messages.some(m => !m || !['user', 'assistant'].includes(m.role) || typeof m.content !== 'string' || m.content.length > 20000)) {
+      return Response.json({ error: 'Send a valid conversation.' }, { status: 400 })
+    }
+    if (!process.env.OPENAI_API_KEY) {
+      return Response.json({ error: 'Live AI is not configured. Try Watch Demo.' }, { status: 503 })
+    }
+    const settingsSchema = z.object({
+      aiName: z.string().max(80).optional(),
+      personality: z.enum(['professional', 'casual', 'minimal']).optional(),
+      activityLevel: z.number().min(0).max(100).optional(),
+      capabilities: z.object({
+        extractDecisions: z.boolean().optional(), summarize: z.boolean().optional(),
+        answerQuestions: z.boolean().optional(), suggestActions: z.boolean().optional(),
+      }).optional(),
+      roomRules: z.string().max(5000).optional(),
+      learnedPreferences: z.array(z.string().max(500)).max(100).optional(),
+    }).safeParse(rawSettings ?? {})
+    if (!settingsSchema.success) return Response.json({ error: 'Invalid room settings.' }, { status: 400 })
+    const settings: RoomSettings = {
+      ...DEFAULT_ROOM_SETTINGS, ...settingsSchema.data,
+      capabilities: { ...DEFAULT_ROOM_SETTINGS.capabilities, ...settingsSchema.data.capabilities },
+    }
 
     // Step 1: Fast decision call (shouldRespond + context extraction)
     const { object: decision } = await generateObject({
@@ -139,7 +162,7 @@ export async function POST(req: Request) {
       messages,
     })
 
-    const contextItems = decision.contextItems ?? []
+    const contextItems = settings.capabilities.extractDecisions ? decision.contextItems ?? [] : []
 
     if (!decision.shouldRespond) {
       // Not responding: return metadata only
@@ -157,31 +180,7 @@ export async function POST(req: Request) {
       messages,
     })
 
-    // Build a custom SSE stream: first event is metadata, then text chunks
-    const encoder = new TextEncoder()
-    const stream = new ReadableStream({
-      async start(controller) {
-        // Send metadata as first event
-        controller.enqueue(
-          encoder.encode(
-            `data: ${JSON.stringify({ type: 'meta', shouldRespond: true, contextItems })}\n\n`
-          )
-        )
-
-        // Stream text chunks
-        for await (const chunk of result.textStream) {
-          controller.enqueue(
-            encoder.encode(
-              `data: ${JSON.stringify({ type: 'text', content: chunk })}\n\n`
-            )
-          )
-        }
-
-        // Done
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'done' })}\n\n`))
-        controller.close()
-      },
-    })
+    const stream = createChatStream(result.fullStream, contextItems)
 
     return new Response(stream, {
       headers: {

@@ -243,6 +243,14 @@ export function ContextSidebar({ items, onToggleTask, onJumpToMessage, onRemoveI
                             ${item.messageId && onJumpToMessage ? 'cursor-pointer hover:border-primary/30 hover:bg-primary/5' : ''}
                             transition-colors`}
                           onClick={() => item.messageId && onJumpToMessage?.(item.messageId)}
+                          onKeyDown={e => {
+                            if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
+                              e.preventDefault()
+                              item.messageId && onJumpToMessage?.(item.messageId)
+                            }
+                          }}
+                          tabIndex={item.messageId ? 0 : undefined}
+                          aria-label={item.messageId ? `View source: ${item.text}` : undefined}
                         >
                           {/* Task checkbox or dot */}
                           {isTask && onToggleTask ? (
@@ -251,6 +259,7 @@ export function ContextSidebar({ items, onToggleTask, onJumpToMessage, onRemoveI
                                 e.stopPropagation()
                                 onToggleTask(globalIdx)
                               }}
+                              aria-label={isDone ? `Reopen task: ${item.text}` : `Complete task: ${item.text}`}
                               className={`mt-1.5 w-5 h-5 rounded border shrink-0 flex items-center justify-center transition-colors
                                 ${isDone
                                   ? 'bg-emerald-500 border-emerald-500 text-white'
@@ -291,6 +300,7 @@ export function ContextSidebar({ items, onToggleTask, onJumpToMessage, onRemoveI
                                 e.stopPropagation()
                                 onRemoveItem(globalIdx)
                               }}
+                              aria-label={`Remove item: ${item.text}`}
                               className="shrink-0 mt-0.5 opacity-0 group-hover:opacity-100 text-muted-foreground/50
                                 hover:text-foreground transition-opacity"
                             >

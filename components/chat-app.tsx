@@ -88,19 +88,19 @@ const SEED_MESSAGES: ChatMessage[] = [
   },
   {
     id: nextId(), role: 'ai',
-    content: "Added that to the panel.\n\n**Task:** Luca to set up CI/CD pipeline and staging environment by end of week.\n\n**Decision:** MVP scope is group chat with AI participant + context panel + shareable demo link. No auth or persistence in v1.\n\n**Link:** PRD spec\n\nYou're in good shape. Three decisions locked, three tasks assigned, infra budget set. Ready to build.",
+    content: "Added that to the panel.\n\n**Task:** Luca to set up CI/CD pipeline and staging environment by end of week.\n\n**Decision:** MVP scope is group chat with AI participant + context panel + shareable demo link. No auth or persistence in v1.\n\n**Link:** PRD spec\n\nYou're in good shape. Three decisions locked, two tasks assigned, infra budget set. Ready to build.",
     timestamp: t(24),
   },
 ]
 
 const SEED_CONTEXT: ContextItem[] = [
-  { type: 'decision', text: 'AI participant operates in listen-first mode. Surfaces context in the side panel, only replies when addressed.',  addedAt: t(37) },
-  { type: 'decision', text: 'Tech stack: Next.js + TypeScript (monorepo), SSE for real-time, GPT-4o as the AI model.', addedAt: t(30) },
-  { type: 'decision', text: 'MVP scope: group chat + AI participant + context panel + shareable demo link. No auth or persistence in v1.', addedAt: t(24) },
-  { type: 'task',     text: 'Priya: deliver design system, component library, and Figma file by Friday.', status: 'open', addedAt: t(30) },
-  { type: 'task',     text: 'Luca: set up CI/CD pipeline and staging environment by end of week.', status: 'open', addedAt: t(24) },
-  { type: 'budget',   text: '$4,000 estimated for infrastructure over the first 3 months.',                           addedAt: t(30) },
-  { type: 'link',     text: '/prd',                                                        addedAt: t(24) },
+  { type: 'decision', text: 'AI participant operates in listen-first mode. Surfaces context in the side panel, only replies when addressed.',  messageId: SEED_MESSAGES[1].id, addedAt: t(37) },
+  { type: 'decision', text: 'Tech stack: Next.js + TypeScript (monorepo), SSE for real-time, GPT-4o as the AI model.', messageId: SEED_MESSAGES[5].id, addedAt: t(30) },
+  { type: 'decision', text: 'MVP scope: group chat + AI participant + context panel + shareable demo link. No auth or persistence in v1.', messageId: SEED_MESSAGES[9].id, addedAt: t(24) },
+  { type: 'task',     text: 'Priya: deliver design system, component library, and Figma file by Friday.', status: 'open', messageId: SEED_MESSAGES[6].id, addedAt: t(30) },
+  { type: 'task',     text: 'Luca: set up CI/CD pipeline and staging environment by end of week.', status: 'open', messageId: SEED_MESSAGES[8].id, addedAt: t(24) },
+  { type: 'budget',   text: '$4,000 estimated for infrastructure over the first 3 months.',                           messageId: SEED_MESSAGES[5].id, addedAt: t(30) },
+  { type: 'link',     text: '/prd',                                                        messageId: SEED_MESSAGES[9].id, addedAt: t(24) },
 ]
 
 export function ChatApp() {
@@ -141,7 +141,12 @@ export function ChatApp() {
     if (!items.length) return
     setContextItems(prev => {
       const seen = new Set(prev.map(i => i.text.toLowerCase()))
-      const fresh = items.filter(i => !seen.has(i.text.toLowerCase()))
+      const fresh = items.filter(i => {
+        const key = i.text.toLowerCase()
+        if (seen.has(key)) return false
+        seen.add(key)
+        return true
+      })
       return fresh.length ? [...prev, ...fresh] : prev
     })
   }, [])
@@ -226,7 +231,10 @@ export function ChatApp() {
         body:    JSON.stringify({ messages: history, settings: roomSettings }),
       })
 
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      if (!res.ok) {
+        const failure = await res.json().catch(() => ({}))
+        throw new Error(failure.error ?? 'The request failed. Please try again.')
+      }
 
       const contentType = res.headers.get('Content-Type') ?? ''
       const aiMsgId = nextId()
@@ -237,14 +245,12 @@ export function ChatApp() {
         const decoder = new TextDecoder()
         let buffer = ''
         let streamedContent = ''
-        let metaReceived = false
 
         // Add placeholder AI message immediately
         setMessages(prev => [
           ...prev,
           { id: aiMsgId, role: 'ai' as const, content: '', timestamp: new Date() },
         ])
-        setLoading(false)
 
         while (true) {
           const { done, value } = await reader.read()
@@ -259,18 +265,19 @@ export function ChatApp() {
             const payload = JSON.parse(line.slice(6))
 
             if (payload.type === 'meta') {
-              metaReceived = true
               if (payload.contextItems?.length) {
                 addContextItems(
                   payload.contextItems.map((i: Omit<ContextItem, 'addedAt'>) => ({
                     ...i,
                     addedAt: new Date(),
-                    messageId: aiMsgId,
+                    messageId: userMsg.id,
                     ...(i.type === 'task' ? { status: 'open' as const } : {}),
                   }))
                 )
                 if (!sidebarOpen) setSidebarOpen(true)
               }
+            } else if (payload.type === 'error') {
+              throw new Error(payload.message ?? 'Reply interrupted')
             } else if (payload.type === 'text') {
               streamedContent += payload.content
               setMessages(prev =>
@@ -301,13 +308,13 @@ export function ChatApp() {
           if (!sidebarOpen) setSidebarOpen(true)
         }
       }
-    } catch {
+    } catch (error) {
       setMessages(prev => [
         ...prev,
         {
           id:        nextId(),
           role:      'ai',
-          content:   'Something went wrong. Please try again.',
+          content:   error instanceof Error ? error.message : 'Something went wrong. Please try again.',
           timestamp: new Date(),
         },
       ])
@@ -515,7 +522,7 @@ export function ChatApp() {
                       How to demo Mesh
                     </p>
                     <p className="text-[13px] text-muted-foreground mb-3 leading-relaxed">
-                      The team has been planning their MVP. Continue the conversation below, or pick a prompt to see Mesh in action.
+                      This conversation and Watch Demo are scripted examples. Messages you send use live AI. Data stays in this browser session.
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {DEMO_PROMPTS.map(prompt => (
