@@ -6,7 +6,7 @@ import { type ContextItem } from '@/lib/types'
 
 const MIN_WIDTH = 220
 const MAX_WIDTH = 520
-const DEFAULT_WIDTH = 400
+const DEFAULT_WIDTH = 340
 
 interface ContextSidebarProps {
   items: ContextItem[]
@@ -55,9 +55,8 @@ const DEMO_SUGGESTIONS = [
   { type: 'budget',   text: '"Q2 engineering budget is $15,000"' },
 ]
 
-function relativeTime(date: Date): string {
-  const now = Date.now()
-  const diff = now - new Date(date).getTime()
+function relativeTime(date: Date, referenceTime: number): string {
+  const diff = Math.max(0, referenceTime - new Date(date).getTime())
   const seconds = Math.floor(diff / 1000)
   if (seconds < 60) return 'just now'
   const minutes = Math.floor(seconds / 60)
@@ -69,6 +68,7 @@ function relativeTime(date: Date): string {
 
 export function ContextSidebar({ items, onToggleTask, onJumpToMessage, onRemoveItem, onClearAll, mobile }: ContextSidebarProps) {
   const [width, setWidth] = useState(DEFAULT_WIDTH)
+  const referenceTime = Math.max(...items.map((item) => new Date(item.addedAt).getTime()), 0)
   const dragging = useRef(false)
   const startX = useRef(0)
   const startW = useRef(DEFAULT_WIDTH)
@@ -109,11 +109,11 @@ export function ContextSidebar({ items, onToggleTask, onJumpToMessage, onRemoveI
 
   return (
     <aside
-      className={
+      className={`mesh-context-panel ${
         mobile
           ? 'w-full bg-background flex flex-col overflow-hidden'
           : 'shrink-0 border-l border-border bg-sidebar flex flex-col overflow-hidden relative'
-      }
+      }`}
       style={mobile ? undefined : { width }}
     >
       {/* Drag handle (desktop only) */}
@@ -133,7 +133,7 @@ export function ContextSidebar({ items, onToggleTask, onJumpToMessage, onRemoveI
           <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
             <Zap size={12} className="text-primary" />
           </div>
-          <h2 className="text-[14px] font-semibold text-foreground tracking-tight">Context Panel</h2>
+          <h2 className="text-[14px] font-semibold text-foreground tracking-tight">Room notes</h2>
           {hasItems && (
             <div className="ml-auto flex items-center gap-2">
               <span className="text-[12px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
@@ -151,7 +151,7 @@ export function ContextSidebar({ items, onToggleTask, onJumpToMessage, onRemoveI
           )}
         </div>
         <p className="text-[13px] text-muted-foreground leading-relaxed pl-8">
-          Mesh extracts key info from the conversation automatically.
+          Decisions, tasks, budgets and links pulled from the chat.
         </p>
       </div>
 
@@ -281,7 +281,7 @@ export function ContextSidebar({ items, onToggleTask, onJumpToMessage, onRemoveI
                               </span>
                             )}
                             <span className="block text-[11px] text-muted-foreground/60 mt-0.5">
-                              {relativeTime(item.addedAt)}
+                              {relativeTime(item.addedAt, referenceTime)}
                             </span>
                           </div>
 

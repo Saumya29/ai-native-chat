@@ -27,6 +27,8 @@ export function MessageBubble({ message, user, isOwn, grouped, highlighted, agen
   const time = new Date(message.timestamp).toLocaleTimeString([], {
     hour:   '2-digit',
     minute: '2-digit',
+    hour12: false,
+    timeZone: 'UTC',
   })
 
   useEffect(() => {

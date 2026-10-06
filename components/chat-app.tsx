@@ -32,7 +32,9 @@ const POST_DEMO_PROMPTS = [
 ]
 
 // Pre-seeded conversation
-const t = (minutesAgo: number) => new Date(Date.now() - minutesAgo * 60_000)
+// Demo messages use a fixed clock so server and browser render the same times.
+const DEMO_CLOCK = Date.UTC(2024, 0, 15, 12, 0)
+const t = (minutesAgo: number) => new Date(DEMO_CLOCK - minutesAgo * 60_000)
 
 const SEED_MESSAGES: ChatMessage[] = [
   {
@@ -52,7 +54,7 @@ const SEED_MESSAGES: ChatMessage[] = [
   },
   {
     id: nextId(), role: 'ai',
-    content: "Got it. Recording that as a core design principle:\n\n**Decision:** The AI participant operates in a \"listen-first\" mode. It surfaces structured context (decisions, tasks, links) in the side panel and only responds in the chat when explicitly addressed.\n\nThis is now tracked in the Context Panel on the right.",
+            content: "Got it. Recording that as a core design principle:\n\n**Decision:** The AI participant operates in a \"listen-first\" mode. It surfaces structured context (decisions, tasks, links) in the side panel and only responds in the chat when explicitly addressed.\n\nThis is now tracked in Room notes on the right.",
     timestamp: t(37),
   },
   {
@@ -376,15 +378,15 @@ export function ChatApp() {
   }, [])
 
   return (
-    <div className="h-screen flex flex-col bg-background overflow-hidden">
+    <div className="mesh-app h-screen flex flex-col bg-background overflow-hidden">
 
       {/* ── Header ── */}
-      <header className="flex items-center justify-between px-3 md:px-5 h-12 md:h-14 border-b border-border bg-card shrink-0">
+      <header className="mesh-topbar flex items-center justify-between px-3 md:px-5 h-12 md:h-14 border-b border-border bg-card shrink-0">
 
         {/* Left: brand + room */}
         <div className="flex items-center gap-2 md:gap-3 min-w-0">
           <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
-            <div className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-indigo-600 flex items-center justify-center shadow-sm">
+            <div className="mesh-brand-mark w-6 h-6 md:w-7 md:h-7 rounded-lg bg-primary flex items-center justify-center">
               <svg width="11" height="11" viewBox="0 0 20 20" fill="none" aria-hidden="true" className="md:w-[13px] md:h-[13px]">
                 <circle cx="6"  cy="6"  r="3.5" fill="white" />
                 <circle cx="14" cy="6"  r="3.5" fill="white" fillOpacity="0.55" />
@@ -477,7 +479,7 @@ export function ChatApp() {
             className="relative hidden md:flex items-center justify-center w-8 h-8 rounded-lg
               text-muted-foreground hover:text-foreground hover:bg-secondary border border-transparent
               hover:border-border transition-all"
-            aria-label={sidebarOpen ? 'Hide context panel' : 'Show context panel'}
+            aria-label={sidebarOpen ? 'Hide room notes' : 'Show room notes'}
           >
             {sidebarOpen ? <PanelRightClose size={15} /> : <PanelRight size={15} />}
             {!sidebarOpen && contextItems.length > 0 && (
@@ -494,7 +496,7 @@ export function ChatApp() {
             className="relative flex md:hidden items-center justify-center w-8 h-8 rounded-lg
               text-muted-foreground hover:text-foreground hover:bg-secondary border border-transparent
               hover:border-border transition-all"
-            aria-label="Show context panel"
+            aria-label="Show room notes"
           >
             <Zap size={14} />
             {contextItems.length > 0 && (
@@ -508,22 +510,22 @@ export function ChatApp() {
       </header>
 
       {/* ── Body ── */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="mesh-layout flex flex-1 overflow-hidden">
 
         {/* Chat column */}
         <main className="flex flex-col flex-1 overflow-hidden min-w-0">
 
           {/* Demo guide banner */}
           {bannerVisible && (
-            <div className="mx-5 mt-4 shrink-0">
-              <div className="rounded-xl border border-border bg-card shadow-sm px-4 py-3.5">
+            <div className="mesh-guide mx-5 mt-4 shrink-0">
+              <div className="rounded-xl border border-border bg-card px-4 py-3.5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <p className="text-[13px] font-semibold text-foreground mb-0.5">
                       A team chat that keeps track
                     </p>
                     <p className="text-[13px] text-muted-foreground mb-3 leading-relaxed">
-                      Ask Mesh a question, or share a decision or task. It keeps notes on the right. The starting conversation is a scripted sample; your messages use live AI. Nothing is saved after you leave this session.
+                      Ask Mesh a question or share an update. It pulls decisions and tasks into the panel on the right. The starting chat is a sample; your messages use live AI and are not saved after you leave.
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {DEMO_PROMPTS.map(prompt => (
@@ -533,7 +535,7 @@ export function ChatApp() {
                             setBannerVisible(false)
                             sendMessage(prompt)
                           }}
-                          className="text-[13px] text-primary border border-primary/30 bg-primary/5
+                          className="mesh-suggestion text-[13px] text-primary border border-primary/30 bg-primary/5
                             hover:bg-primary/10 rounded-lg px-3 py-1.5 transition-colors leading-snug text-left"
                         >
                           {prompt}
@@ -555,8 +557,8 @@ export function ChatApp() {
 
           {/* Post-demo guide banner */}
           {postDemo && messages.length === 0 && (
-            <div className="mx-5 mt-4 shrink-0">
-              <div className="rounded-xl border border-border bg-card shadow-sm px-4 py-3.5">
+            <div className="mesh-guide mx-5 mt-4 shrink-0">
+              <div className="rounded-xl border border-border bg-card px-4 py-3.5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <p className="text-[13px] font-semibold text-foreground mb-0.5">
@@ -573,7 +575,7 @@ export function ChatApp() {
                             setPostDemo(false)
                             sendMessage(prompt)
                           }}
-                          className="text-[13px] text-primary border border-primary/30 bg-primary/5
+                          className="mesh-suggestion text-[13px] text-primary border border-primary/30 bg-primary/5
                             hover:bg-primary/10 rounded-lg px-3 py-1.5 transition-colors leading-snug text-left"
                         >
                           {prompt}
@@ -594,7 +596,7 @@ export function ChatApp() {
           )}
 
           {/* Messages */}
-          <div ref={messagesRef} className="flex-1 overflow-y-auto px-5 pt-3 pb-2">
+          <div ref={messagesRef} className="mesh-messages flex-1 overflow-y-auto px-5 pt-3 pb-2">
             {messages.map((msg, i) => {
               const agentForUser = msg.role === 'agent' ? DEMO_USERS.find(u => u.id === msg.agentFor) : undefined
               const user    = msg.role === 'ai' ? AI_USER : msg.role === 'agent' ? (agentForUser ?? AI_USER) : DEMO_USERS.find(u => u.id === msg.userId)!
@@ -718,7 +720,7 @@ export function ChatApp() {
           </div>
 
           {/* Input */}
-          <div className="px-5 pb-5 pt-2 shrink-0">
+          <div className="mesh-composer-area px-5 pb-5 pt-2 shrink-0">
             <div
               className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden
                 focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20 transition-all"

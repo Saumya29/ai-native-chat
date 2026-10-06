@@ -5,36 +5,36 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Mesh: warm off-white */
-  --background: oklch(0.976 0.003 80);
-  --foreground: oklch(0.13 0.01 255);
+  /* Mesh shares AskBase's quiet, warm workspace palette. */
+  --background: oklch(0.978 0.006 145);
+  --foreground: oklch(0.2 0.018 165);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.13 0.01 255);
+  --card-foreground: oklch(0.2 0.018 165);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.13 0.01 255);
-  --primary: oklch(0.52 0.22 264);
+  --popover-foreground: oklch(0.2 0.018 165);
+  --primary: oklch(0.48 0.12 164);
   --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.955 0.004 255);
-  --secondary-foreground: oklch(0.22 0.01 255);
-  --muted: oklch(0.955 0.004 255);
-  --muted-foreground: oklch(0.53 0.01 255);
-  --accent: oklch(0.955 0.004 255);
-  --accent-foreground: oklch(0.22 0.01 255);
+  --secondary: oklch(0.955 0.008 150);
+  --secondary-foreground: oklch(0.25 0.015 165);
+  --muted: oklch(0.955 0.008 150);
+  --muted-foreground: oklch(0.52 0.018 160);
+  --accent: oklch(0.945 0.012 150);
+  --accent-foreground: oklch(0.25 0.015 165);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.905 0.006 255);
-  --input: oklch(0.905 0.006 255);
-  --ring: oklch(0.52 0.22 264);
-  --radius: 0.625rem;
+  --border: oklch(0.91 0.012 155);
+  --input: oklch(0.9 0.012 155);
+  --ring: oklch(0.58 0.09 164);
+  --radius: 0.75rem;
   /* sidebar */
-  --sidebar: oklch(0.968 0.005 255);
-  --sidebar-foreground: oklch(0.13 0.01 255);
-  --sidebar-primary: oklch(0.52 0.22 264);
+  --sidebar: oklch(0.97 0.008 145);
+  --sidebar-foreground: oklch(0.2 0.018 165);
+  --sidebar-primary: oklch(0.48 0.12 164);
   --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.955 0.004 255);
-  --sidebar-accent-foreground: oklch(0.22 0.01 255);
-  --sidebar-border: oklch(0.905 0.006 255);
-  --sidebar-ring: oklch(0.52 0.22 264);
+  --sidebar-accent: oklch(0.945 0.012 150);
+  --sidebar-accent-foreground: oklch(0.25 0.015 165);
+  --sidebar-border: oklch(0.91 0.012 155);
+  --sidebar-ring: oklch(0.58 0.09 164);
   /* charts */
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
@@ -50,7 +50,7 @@
   --card-foreground: oklch(0.93 0.005 260);
   --popover: oklch(0.17 0.005 260);
   --popover-foreground: oklch(0.93 0.005 260);
-  --primary: oklch(0.60 0.22 264);
+  --primary: oklch(0.68 0.12 164);
   --primary-foreground: oklch(0.99 0 0);
   --secondary: oklch(0.22 0.008 260);
   --secondary-foreground: oklch(0.93 0.005 260);
@@ -62,7 +62,7 @@
   --destructive-foreground: oklch(0.99 0 0);
   --border: oklch(0.25 0.008 260);
   --input: oklch(0.25 0.008 260);
-  --ring: oklch(0.60 0.22 264);
+  --ring: oklch(0.68 0.12 164);
   --chart-1: oklch(0.60 0.22 264);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -70,12 +70,12 @@
   --chart-5: oklch(0.645 0.246 16.439);
   --sidebar: oklch(0.15 0.005 260);
   --sidebar-foreground: oklch(0.93 0.005 260);
-  --sidebar-primary: oklch(0.60 0.22 264);
+  --sidebar-primary: oklch(0.68 0.12 164);
   --sidebar-primary-foreground: oklch(0.99 0 0);
   --sidebar-accent: oklch(0.22 0.008 260);
   --sidebar-accent-foreground: oklch(0.93 0.005 260);
   --sidebar-border: oklch(0.25 0.008 260);
-  --sidebar-ring: oklch(0.60 0.22 264);
+  --sidebar-ring: oklch(0.68 0.12 164);
 }
 
 @theme inline {
@@ -136,4 +136,31 @@
   summary {
     cursor: pointer;
   }
+}
+
+/* Mesh workspace, matched to AskBase's calm focus palette. */
+.mesh-app { height:100dvh; background:var(--background); }
+.mesh-topbar { height:64px!important; padding:0 24px!important; border-color:var(--border); }
+.mesh-brand-mark { width:34px!important; height:34px!important; border-radius:11px!important; box-shadow:0 3px 9px color-mix(in oklch,var(--primary) 18%,transparent); }
+.mesh-brand-mark svg { width:15px!important; height:15px!important; }
+.mesh-layout { background:var(--background); }
+.mesh-guide { max-width:1040px; width:calc(100% - 48px); margin:18px auto 0!important; }
+.mesh-guide > div { padding:16px 18px!important; border-radius:15px!important; box-shadow:0 5px 18px rgba(23,42,31,.035); }
+.mesh-guide p { max-width:880px; }
+.mesh-suggestion { border-radius:999px!important; padding:8px 12px!important; font-size:11px!important; }
+.mesh-messages { padding:18px 28px 12px!important; }
+.mesh-composer-area { width:100%; padding:10px 24px 20px!important; background:linear-gradient(to top,var(--background) 75%,transparent); }
+.mesh-composer-area > div { width:min(100%,950px); margin:0 auto; border-radius:17px!important; box-shadow:0 8px 26px rgba(23,42,31,.07)!important; }
+.mesh-context-panel { box-shadow:-8px 0 28px rgba(25,42,31,.035); }
+.mesh-context-panel > div:first-child { padding-top:20px; }
+.mesh-context-panel ul li { border-radius:11px!important; }
+
+@media (max-width:760px) {
+  .mesh-topbar { height:58px!important; padding:0 12px!important; }
+  .mesh-guide { width:calc(100% - 20px); margin-top:10px!important; }
+  .mesh-guide > div { padding:12px!important; }
+  .mesh-guide p { font-size:11px!important; }
+  .mesh-suggestion { max-width:100%; font-size:10px!important; padding:7px 10px!important; }
+  .mesh-messages { padding:12px 13px 8px!important; }
+  .mesh-composer-area { padding:8px 10px 12px!important; }
 }
