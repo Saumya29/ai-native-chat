@@ -17,3 +17,7 @@ test('new declarative evidence is retained alongside a separate question', () =>
 test('ungrounded or empty quotes are rejected', () => {
   assert.deepEqual(groundedContextItems([{...budget,sourceQuote:''},budget], 'We are using Next.js.'), [])
 })
+test('a shortened model summary cannot discard the task deadline', () => {
+  const result = groundedContextItems([{type:'task',text:'Saumya will write the evaluation checklist',sourceQuote:'Saumya will write the evaluation checklist'}], '[Herman]: Saumya will write the evaluation checklist by Friday.');
+  assert.equal(result[0].text, 'Saumya will write the evaluation checklist by Friday.');
+});

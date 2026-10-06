@@ -16,5 +16,10 @@ export function groundedContextItems(items: ExtractedItem[], latestMessage: stri
     return sentences.some(sentence => sentence.includes(quote) &&
       !sentence.includes('?') &&
       !/^(?:\[[^\]]+\]:\s*)?(?:can|could|would|should|did|do|does|is|are|what|when|why|how)\b/i.test(sentence))
-  }).map(({ sourceQuote, ...item }) => item)
+  }).map(({ sourceQuote, ...item }) => {
+    if (item.type !== 'task') return item
+    const sentence = sentences.find(sentence => sentence.includes(normalize(sourceQuote)))!
+    // Keep the actual task sentence, including deadline, instead of a lossy summary.
+    return { ...item, text: sentence.replace(/^\[[^\]]+\]:\s*/, '') }
+  })
 }

@@ -88,6 +88,7 @@ Context extraction rules (only extract concrete facts in the latest user message
 - "budget": a monetary figure or budget constraint (e.g. "Q2 budget is $12,000")
 - Return null for contextItems if nothing new to extract.
 - Questions, requests to confirm, hypothetical examples, proposals awaiting approval, and disputed premises are not new decisions. Do not extract them.
+- Task text must include the owner, deliverable and deadline exactly as stated. Do not drop dates or commitments.
 - Every item requires sourceQuote: copy its supporting sentence verbatim from the latest user message. Never reconstruct a quote from history.`
 
   if (settings.roomRules?.trim()) {

@@ -21,8 +21,7 @@ const nextId = () => `msg-${++msgId}`
 const DEMO_PROMPTS = [
   "Can you summarise everything we've agreed on so far?",
   "Mesh, what are the open tasks right now?",
-  "Let's set our seed round target at $2M",
-  "Priya will own the design system end of next week",
+  "Saumya will write the evaluation checklist by Friday.",
 ]
 
 const POST_DEMO_PROMPTS = [
@@ -309,12 +308,13 @@ export function ChatApp() {
         }
       }
     } catch (error) {
+      setInput(text)
       setMessages(prev => [
         ...prev,
         {
           id:        nextId(),
           role:      'ai',
-          content:   error instanceof Error ? error.message : 'Something went wrong. Please try again.',
+          content:   error instanceof Error && error.message !== 'Failed to fetch' ? error.message : 'Connection interrupted. Your message is back in the input. Try sending it again.',
           timestamp: new Date(),
         },
       ])
@@ -520,10 +520,10 @@ export function ChatApp() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <p className="text-[13px] font-semibold text-foreground mb-0.5">
-                      How to demo Mesh
+                      A team chat that keeps track
                     </p>
                     <p className="text-[13px] text-muted-foreground mb-3 leading-relaxed">
-                      This conversation and Watch Demo are scripted examples. Messages you send use live AI. Data stays in this browser session.
+                      Ask Mesh a question, or share a decision or task. It keeps notes on the right. The starting conversation is a scripted sample; your messages use live AI. Nothing is saved after you leave this session.
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {DEMO_PROMPTS.map(prompt => (
@@ -741,7 +741,8 @@ export function ChatApp() {
                 value={input}
                 onChange={e => { setInput(e.target.value); autoResize(e.currentTarget) }}
                 onKeyDown={handleKeyDown}
-                placeholder="Type a message..."
+                placeholder="Ask Mesh, or share an update…"
+                aria-label="Message the team"
                 disabled={demoActive}
                 className="w-full resize-none bg-transparent px-4 py-2 text-[15px] text-foreground
                   placeholder:text-muted-foreground outline-none leading-relaxed disabled:opacity-50"
