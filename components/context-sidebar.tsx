@@ -67,12 +67,6 @@ function relativeTime(date: Date): string {
   return `${Math.floor(hours / 24)}d ago`
 }
 
-function parseBudgetAmount(text: string): number | null {
-  const match = text.match(/\$[\d,]+(?:\.\d{2})?/)
-  if (!match) return null
-  return parseFloat(match[0].replace(/[$,]/g, ''))
-}
-
 export function ContextSidebar({ items, onToggleTask, onJumpToMessage, onRemoveItem, onClearAll, mobile }: ContextSidebarProps) {
   const [width, setWidth] = useState(DEFAULT_WIDTH)
   const dragging = useRef(false)
@@ -107,8 +101,6 @@ export function ContextSidebar({ items, onToggleTask, onJumpToMessage, onRemoveI
 
   // Budget summary
   const budgetItems = grouped['budget']
-  const budgetAmounts = budgetItems.map(b => parseBudgetAmount(b.text)).filter((n): n is number => n !== null)
-  const budgetTotal = budgetAmounts.reduce((sum, n) => sum + n, 0)
 
   // Task stats
   const taskItems = grouped['task']
@@ -192,17 +184,17 @@ export function ContextSidebar({ items, onToggleTask, onJumpToMessage, onRemoveI
           <div className="space-y-6">
 
             {/* Budget summary */}
-            {budgetItems.length > 0 && budgetTotal > 0 && (
+            {budgetItems.length > 0 && (
               <div className="rounded-lg bg-amber-50 border border-amber-200/60 px-3 py-2.5">
                 <div className="flex items-center gap-2 mb-1">
                   <DollarSign size={12} className="text-amber-600" />
-                  <span className="text-[12px] font-semibold text-amber-800">Budget Summary</span>
+                  <span className="text-[12px] font-semibold text-amber-800">Budget notes</span>
                 </div>
                 <p className="text-[18px] font-bold text-amber-900 tracking-tight font-mono">
-                  ${budgetTotal.toLocaleString()}
+                  {budgetItems.length} note{budgetItems.length !== 1 ? 's' : ''}
                 </p>
                 <p className="text-[11px] text-amber-700">
-                  across {budgetItems.length} item{budgetItems.length !== 1 ? 's' : ''}
+                  See amounts and periods below. Estimates and revisions are not added together.
                 </p>
               </div>
             )}

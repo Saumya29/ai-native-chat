@@ -2,6 +2,7 @@ import { generateObject, streamText } from 'ai'
 import { createOpenAI } from '@ai-sdk/openai'
 import { z } from 'zod'
 import { createChatStream } from '@/lib/chat-stream'
+import { groundedContextItems } from '@/lib/context-evidence'
 import { type RoomSettings, DEFAULT_ROOM_SETTINGS } from '@/lib/types'
 
 export const runtime = 'nodejs'
@@ -20,6 +21,7 @@ const decisionSchema = z.object({
       z.object({
         type: z.enum(['decision', 'task', 'link', 'budget']),
         text: z.string(),
+        sourceQuote: z.string().describe("Exact supporting sentence from the latest user message. Never quote earlier messages or assistant replies."),
       })
     )
     .nullable()
@@ -84,7 +86,9 @@ Context extraction rules (only extract concrete facts in the latest user message
 - "task": something to do with an owner if mentioned (e.g. "Marcus will set up CI/CD")
 - "link": a URL shared in the chat
 - "budget": a monetary figure or budget constraint (e.g. "Q2 budget is $12,000")
-- Return null for contextItems if nothing new to extract.`
+- Return null for contextItems if nothing new to extract.
+- Questions, requests to confirm, hypothetical examples, proposals awaiting approval, and disputed premises are not new decisions. Do not extract them.
+- Every item requires sourceQuote: copy its supporting sentence verbatim from the latest user message. Never reconstruct a quote from history.`
 
   if (settings.roomRules?.trim()) {
     prompt += `\n\nRoom Rules (set by the team, you MUST follow these):\n${settings.roomRules.trim()}`
@@ -113,7 +117,8 @@ Your personality:
 - Keep replies short unless depth is needed.
 - Do not use em-dashes. Use periods, commas, or colons instead.
 
-Respond naturally to the conversation. You can use markdown for formatting (bold, lists, etc).`
+Respond naturally to the conversation. You can use markdown for formatting (bold, lists, etc).
+Ground factual answers in the conversation. Distinguish estimates, derived calculations, proposals, and approved decisions. If a question assumes a fact that conflicts with history, explain the conflict and ask for clarification. Do not claim that notes were changed or record a proposed change as approved.`
 
   if (settings.roomRules?.trim()) {
     prompt += `\n\nRoom Rules (set by the team, you MUST follow these):\n${settings.roomRules.trim()}`
@@ -162,7 +167,9 @@ export async function POST(req: Request) {
       messages,
     })
 
-    const contextItems = settings.capabilities.extractDecisions ? decision.contextItems ?? [] : []
+    const latestMessage = [...messages].reverse().find(m => m.role === 'user')?.content ?? ''
+    const contextItems = settings.capabilities.extractDecisions
+      ? groundedContextItems(decision.contextItems ?? [], latestMessage) : []
 
     if (!decision.shouldRespond) {
       // Not responding: return metadata only
